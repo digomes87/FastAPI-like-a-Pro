@@ -3,6 +3,6 @@ from fastapi import FastAPI
 app = FastAPI()
 
 
-@app.get('/')
+@app.get('/', status_code=200)
 def read_root():
     return {'message': 'Bora pra mais uma'}
