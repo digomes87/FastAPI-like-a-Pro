@@ -18,9 +18,7 @@ class TestUser:
     def test_user_has_correct_attributes() -> None:
         """Verify if User has all expected attributes."""
         user = User(
-            username='testuser',
-            password='secret',
-            email='test@example.com'
+            username='testuser', password='secret', email='test@example.com'
         )
 
         assert user.username == 'testuser'
@@ -38,9 +36,7 @@ class TestUser:
     def test_user_string_representation() -> None:
         """Verify the string representation of User."""
         user = User(
-            username='testuser',
-            password='secret',
-            email='test@example.com'
+            username='testuser', password='secret', email='test@example.com'
         )
         assert 'User' in repr(user)
         assert 'testuser' in repr(user)
