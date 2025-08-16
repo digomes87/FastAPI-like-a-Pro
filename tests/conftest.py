@@ -1,14 +1,23 @@
-from datetime import datetime
+# Standard Library
 from contextlib import contextmanager
-from typing import Generator, Any, Type
+from datetime import datetime
+from http import HTTPStatus
+from typing import Any, Generator, Type
+
+# Third-party Libraries
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import event
-from sqlalchemy.orm import Mapper
 from sqlalchemy.engine import Connection
+from sqlalchemy.orm import Mapper
 
+# Local Imports
 from fast_zero.app import app
+from fast_zero.models import User
 
-def get_client() -> TestClient:
+
+@pytest.fixture
+def client() -> TestClient:
     return TestClient(app)
 
 
@@ -23,10 +32,9 @@ def mock_db_time(
     with mock_db_time(model=User, time=desired_datetime):
         # Your test code here
     """
+
     def fake_time_hook(
-        mapper: Mapper[Any], 
-        connection: Connection, 
-        target: Any
+        mapper: Mapper[Any], connection: Connection, target: Any
     ) -> None:
         if hasattr(target, 'created_at'):
             setattr(target, 'created_at', time)
@@ -41,18 +49,16 @@ def mock_db_time(
 
 
 def test_example_with_mocked_time(client: TestClient) -> None:
-    from fast_zero.models import User  # Import your model
-
     test_time = datetime(2023, 12, 25, 12, 0, 0)
 
     with mock_db_time(model=User, time=test_time):
         response = client.post(
-            "/users/",
+            '/users/',
             json={
-                "username": "testuser",
-                "email": "test@example.com",
-                "password": "secret",
+                'username': 'testuser',
+                'email': 'test@example.com',
+                'password': 'secret',
             },
         )
 
-    assert response.status_code == 201
+    assert response.status_code == HTTPStatus.OK
