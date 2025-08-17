@@ -10,7 +10,7 @@ output "repository_clone_url" {
 
 output "workflow_file_path" {
   description = "Caminho do arquivo de workflow de testes"
-  value       = github_repository_file.ci_workflow.file
+  value       = ".github/workflows/tests.yml"
 }
 
 output "auto_pr_workflow_path" {
@@ -34,7 +34,7 @@ output "setup_instructions" {
 ✅ Terraform aplicado com sucesso!
     
 Próximos passos:
-1. Acesse: https://github.com/${github_repository_file.ci_workflow.repository}/actions
+1. Acesse: https://github.com/${data.github_repository.fastapi_pro.name}/actions
 2. Crie uma branch 'feature/code' para desenvolvimento
 3. Faça commits na branch feature/code
 4. O workflow de testes será executado automaticamente
@@ -42,7 +42,7 @@ Próximos passos:
 6. Configure o Codecov se necessário: https://codecov.io/
     
 Recursos criados:
-- Workflow de CI/CD em ${github_repository_file.ci_workflow.file}
+- Workflow de CI/CD em .github/workflows/tests.yml
 - Workflow de Auto-PR em ${github_repository_file.auto_pr_workflow.file}
 - Proteção de branch para 'main'
 - Verificações obrigatórias de status
