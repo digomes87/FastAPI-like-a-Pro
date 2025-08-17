@@ -25,7 +25,7 @@ class TestUser:
         assert user.password == 'secret'
         assert user.email == 'test@example.com'
         assert user.id is None  # Should not be set on initialization
-        assert isinstance(user.create_at, datetime) or user.create_at is None
+        assert isinstance(user.created_at, datetime) or user.created_at is None
 
     @staticmethod
     def test_user_table_name_is_correct() -> None:
