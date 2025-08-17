@@ -9,8 +9,13 @@ output "repository_clone_url" {
 }
 
 output "workflow_file_path" {
-  description = "Caminho do arquivo de workflow criado"
+  description = "Caminho do arquivo de workflow de testes"
   value       = github_repository_file.ci_workflow.file
+}
+
+output "auto_pr_workflow_path" {
+  description = "Caminho do arquivo de workflow de auto-PR"
+  value       = github_repository_file.auto_pr_workflow.file
 }
 
 output "branch_protection_enabled" {
@@ -24,19 +29,24 @@ output "actions_url" {
 }
 
 output "setup_instructions" {
-  description = "Próximos passos após aplicar o Terraform"
-  value       = <<-EOT
-    ✅ Terraform aplicado com sucesso!
+  description = "Instruções de configuração pós-aplicação"
+  value = <<EOT
+✅ Terraform aplicado com sucesso!
     
-    Próximos passos:
-    1. Acesse: ${data.github_repository.fastapi_pro.html_url}/actions
-    2. Verifique se o workflow está funcionando
-    3. Faça um commit para testar o CI/CD
-    4. Configure o Codecov se necessário: https://codecov.io/
+Próximos passos:
+1. Acesse: https://github.com/${github_repository_file.ci_workflow.repository}/actions
+2. Crie uma branch 'feature/code' para desenvolvimento
+3. Faça commits na branch feature/code
+4. O workflow de testes será executado automaticamente
+5. Quando os testes passarem, um PR será criado automaticamente para main
+6. Configure o Codecov se necessário: https://codecov.io/
     
-    Recursos criados:
-    - Workflow de CI/CD em .github/workflows/tests.yml
-    - Proteção de branch para 'main'
-    - Verificações obrigatórias de status
-  EOT
+Recursos criados:
+- Workflow de CI/CD em ${github_repository_file.ci_workflow.file}
+- Workflow de Auto-PR em ${github_repository_file.auto_pr_workflow.file}
+- Proteção de branch para 'main'
+- Verificações obrigatórias de status
+- Automação de Pull Requests
+
+EOT
 }

@@ -1,0 +1,75 @@
+name: Auto PR Creation
+
+on:
+  workflow_run:
+    workflows: ["Tests"]
+    types:
+      - completed
+    branches:
+      - feature/code
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Check if PR already exists
+        id: check-pr
+        run: |
+          PR_EXISTS=$(gh pr list --head feature/code --base main --json number --jq length)
+          echo "pr_exists=$PR_EXISTS" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Pull Request
+        if: steps.check-pr.outputs.pr_exists == '0'
+        run: |
+          gh pr create \
+            --title "🚀 Auto PR: Feature/Code → Main" \
+            --body "## 🤖 Pull Request Automático
+            
+            Este PR foi criado automaticamente após o sucesso da pipeline de testes na branch \`feature/code\`.
+            
+            ### ✅ Verificações Realizadas
+            - ✅ Testes passaram com sucesso
+            - ✅ Linting executado sem erros
+            - ✅ Cobertura de código verificada
+            
+            ### 📋 Próximos Passos
+            - [ ] Revisar as mudanças
+            - [ ] Aprovar o PR
+            - [ ] Fazer merge para main
+            
+            ---
+            
+            **Branch de origem:** \`feature/code\`  
+            **Branch de destino:** \`main\`  
+            **Workflow:** ${{ github.event.workflow_run.html_url }}" \
+            --head feature/code \
+            --base main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add labels to PR
+        if: steps.check-pr.outputs.pr_exists == '0'
+        run: |
+          PR_NUMBER=$(gh pr list --head feature/code --base main --json number --jq '.[0].number')
+          gh pr edit $PR_NUMBER --add-label "automated,ready-for-review"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Request review (optional)
+        if: steps.check-pr.outputs.pr_exists == '0'
+        run: |
+          # Descomente a linha abaixo e substitua pelo username do revisor
+          # gh pr edit $PR_NUMBER --add-reviewer "username-do-revisor"
+          echo "PR criado com sucesso! Adicione revisores manualmente se necessário."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
