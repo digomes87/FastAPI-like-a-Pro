@@ -1,0 +1,20 @@
+# GitHub Personal Access Token
+# Para obter um token:
+# 1. Vá para GitHub Settings > Developer settings > Personal access tokens > Tokens (classic)
+# 2. Clique em "Generate new token (classic)"
+# 3. Selecione os escopos: repo, workflow, admin:repo_hook
+# 4. Copie o token gerado
+github_token = "ghp_your_github_token_here"
+
+# GitHub repository owner (opcional, padrão: digomes87)
+# github_owner = "seu_usuario_github"
+
+# Nome do repositório (opcional, padrão: FastAPI-like-a-Pro)
+# repository_name = "seu_repositorio"
+
+# Token do Codecov para relatórios de cobertura (opcional)
+# Para obter:
+# 1. Acesse https://codecov.io/
+# 2. Conecte seu repositório GitHub
+# 3. Copie o token do repositório
+# codecov_token = "seu_codecov_token_aqui"
