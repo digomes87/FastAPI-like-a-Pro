@@ -220,6 +220,107 @@ class AsyncUserService:
         
         result = await self.session.execute(stmt)
         return len(result.scalars().all())
+    
+    async def get_user_by_google_id(self, google_id: str) -> Optional[User]:
+        """Get user by Google ID asynchronously.
+        
+        Args:
+            google_id: Google OAuth user ID
+            
+        Returns:
+            User instance or None if not found
+        """
+        stmt = select(User).where(User.google_id == google_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+    
+    async def create_oauth_user(
+        self,
+        user_data: UserCreate,
+        google_id: str,
+        picture: str = '',
+        oauth_provider: str = 'google',
+        email_verified: bool = False
+    ) -> User:
+        """Create a new OAuth user asynchronously.
+        
+        Args:
+            user_data: User creation data
+            google_id: Google OAuth user ID
+            picture: User profile picture URL
+            oauth_provider: OAuth provider name
+            email_verified: Whether email is verified
+            
+        Returns:
+            Created user instance
+            
+        Raises:
+            IntegrityError: If username or email already exists
+        """
+        # For OAuth users, password can be empty
+        hashed_password = get_password_hash(user_data.password) if user_data.password else None
+        
+        user = User(
+            username=user_data.username,
+            email=user_data.email,
+            password=hashed_password,
+            first_name=user_data.first_name,
+            last_name=user_data.last_name,
+            bio=user_data.bio,
+            google_id=google_id,
+            picture=picture,
+            oauth_provider=oauth_provider,
+            email_verified=email_verified,
+            is_active=True
+        )
+        
+        try:
+            self.session.add(user)
+            await self.session.flush()  # Flush to get the ID
+            return user
+        except IntegrityError as e:
+            await self.session.rollback()
+            error_msg = str(e).lower()
+            # Check for specific constraint violations
+            if 'users.username' in error_msg or 'unique constraint failed: users.username' in error_msg:
+                raise ValueError('Username already exists') from e
+            elif 'users.email' in error_msg or 'unique constraint failed: users.email' in error_msg:
+                raise ValueError('Email already exists') from e
+            elif 'username' in error_msg:
+                raise ValueError('Username already exists') from e
+            elif 'email' in error_msg:
+                raise ValueError('Email already exists') from e
+            raise e
+    
+    async def update_user_oauth_info(
+        self,
+        user_id: int,
+        google_id: str,
+        picture: str = '',
+        oauth_provider: str = 'google'
+    ) -> Optional[User]:
+        """Update user OAuth information asynchronously.
+        
+        Args:
+            user_id: User ID
+            google_id: Google OAuth user ID
+            picture: User profile picture URL
+            oauth_provider: OAuth provider name
+            
+        Returns:
+            Updated user instance or None if not found
+        """
+        user = await self.get_user_by_id(user_id)
+        if not user:
+            return None
+        
+        user.google_id = google_id
+        user.picture = picture
+        user.oauth_provider = oauth_provider
+        
+        await self.session.flush()
+        await self.session.refresh(user)
+        return user
 
 
 def get_async_user_service(session: AsyncSession) -> AsyncUserService:

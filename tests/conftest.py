@@ -15,7 +15,7 @@ from sqlalchemy.orm import Mapper, Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 # Local Imports
-from fast_zero.app import app
+from fast_zero.async_app import app
 from fast_zero.async_auth import create_access_token, get_password_hash
 from fast_zero.database import get_async_session
 from fast_zero.models import User, table_registry
@@ -29,7 +29,6 @@ def session() -> Generator[Session, None, None]:
     """Create a test database session."""
     engine = create_engine(
         settings.TEST_DATABASE_URL,
-        connect_args={'check_same_thread': False},
         poolclass=StaticPool,
     )
     
@@ -54,12 +53,9 @@ def session() -> Generator[Session, None, None]:
 @pytest_asyncio.fixture
 async def async_session() -> AsyncGenerator[AsyncSession, None]:
     """Create a test async database session."""
-    # Use aiosqlite for async testing
-    test_db_url = settings.TEST_DATABASE_URL.replace('sqlite:///', 'sqlite+aiosqlite:///')
-    
+    # Use asyncpg for async testing with PostgreSQL
     engine = create_async_engine(
-        test_db_url,
-        connect_args={'check_same_thread': False},
+        settings.TEST_DATABASE_URL,
         poolclass=StaticPool,
     )
     
@@ -134,7 +130,7 @@ def test_example_with_mocked_time(client: TestClient) -> None:
             json={
                 'username': 'testuser',
                 'email': 'test@example.com',
-                'password': 'secret',
+                'password': 'TestPass9$7!',
             },
         )
 

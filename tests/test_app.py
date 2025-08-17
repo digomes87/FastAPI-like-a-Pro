@@ -20,7 +20,7 @@ def test_create_user(client: TestClient) -> None:
         json={
             'username': 'alice',
             'email': 'alice@example.com',
-            'password': '12345678',
+            'password': 'TestPass9$7!',
         },
     )
     assert response.status_code == HTTPStatus.CREATED
@@ -42,7 +42,7 @@ def test_create_user_duplicate_username(client: TestClient) -> None:
         json={
             'username': 'alice',
             'email': 'alice@example.com',
-            'password': '12345678',
+            'password': 'TestPass9$7!',
         },
     )
     
@@ -52,7 +52,7 @@ def test_create_user_duplicate_username(client: TestClient) -> None:
         json={
             'username': 'alice',
             'email': 'alice2@example.com',
-            'password': '12345678',
+            'password': 'TestPass9$7!',
         },
     )
     assert response.status_code == HTTPStatus.CONFLICT
@@ -67,7 +67,7 @@ def test_create_user_duplicate_email(client: TestClient) -> None:
         json={
             'username': 'user1',
             'email': 'duplicate@example.com',
-            'password': '12345678',
+            'password': 'TestPass9$7!',
         },
     )
     
@@ -77,7 +77,7 @@ def test_create_user_duplicate_email(client: TestClient) -> None:
         json={
             'username': 'user2',
             'email': 'duplicate@example.com',
-            'password': '12345678',
+            'password': 'TestPass9$7!',
         },
     )
     assert response.status_code == HTTPStatus.CONFLICT
@@ -104,7 +104,7 @@ def test_read_users_with_data(client: TestClient) -> None:
         json={
             'username': 'alice',
             'email': 'alice@example.com',
-            'password': '12345678',
+            'password': 'TestPass9$7!',
         },
     )
     
@@ -125,7 +125,7 @@ def test_read_user_by_id(client: TestClient) -> None:
         json={
             'username': 'alice',
             'email': 'alice@example.com',
-            'password': '12345678',
+            'password': 'TestPass9$7!',
         },
     )
     user_id = create_response.json()['id']
@@ -153,7 +153,7 @@ def test_update_user(client: TestClient) -> None:
         json={
             'username': 'alice',
             'email': 'alice@example.com',
-            'password': '12345678',
+            'password': 'TestPass9$7!',
         },
     )
     user_id = create_response.json()['id']
@@ -199,7 +199,7 @@ def test_delete_user(client: TestClient) -> None:
         json={
             'username': 'alice',
             'email': 'alice@example.com',
-            'password': '12345678',
+            'password': 'TestPass9$7!',
         },
     )
     user_id = create_response.json()['id']

@@ -23,14 +23,19 @@ Este projeto demonstra a implementação de uma API REST profissional usando **F
 ### **Backend**
 - **[FastAPI](https://fastapi.tiangolo.com/)** - Framework web moderno e rápido
 - **[Pydantic](https://pydantic.dev/)** - Validação de dados com type hints
-- **[SQLAlchemy](https://www.sqlalchemy.org/)** - ORM para banco de dados
+- **[SQLAlchemy](https://www.sqlalchemy.org/)** - ORM assíncrono para banco de dados
 - **[Alembic](https://alembic.sqlalchemy.org/)** - Migrações de banco de dados
+- **[PostgreSQL](https://www.postgresql.org/)** - Banco de dados relacional robusto
+- **[AsyncPG](https://github.com/MagicStack/asyncpg)** - Driver assíncrono para PostgreSQL
+- **[JWT](https://jwt.io/)** - Autenticação com JSON Web Tokens
 
 ### **Desenvolvimento**
 - **[Poetry](https://python-poetry.org/)** - Gerenciamento de dependências
 - **[Pytest](https://pytest.org/)** - Framework de testes
 - **[Ruff](https://github.com/astral-sh/ruff)** - Linter e formatter ultra-rápido
 - **[Taskipy](https://github.com/taskipy/taskipy)** - Task runner
+- **[Docker](https://www.docker.com/)** - Containerização da aplicação
+- **[Docker Compose](https://docs.docker.com/compose/)** - Orquestração de contêineres
 
 ### **DevOps & CI/CD**
 - **[GitHub Actions](https://github.com/features/actions)** - Pipeline de CI/CD
@@ -45,10 +50,15 @@ Este projeto demonstra a implementação de uma API REST profissional usando **F
 | Método | Endpoint | Descrição | Status |
 |--------|----------|-----------|--------|
 | `GET` | `/` | Mensagem de boas-vindas | ✅ |
+| `GET` | `/health` | Health check para monitoramento | ✅ |
 | `POST` | `/users/` | Criar novo usuário | ✅ |
 | `GET` | `/users/` | Listar todos os usuários | ✅ |
 | `PUT` | `/users/{user_id}` | Atualizar usuário | ✅ |
 | `DELETE` | `/users/{user_id}` | Deletar usuário | ✅ |
+| `POST` | `/auth/token` | Login e obtenção de token JWT | ✅ |
+| `GET` | `/auth/refresh` | Renovar token de acesso | ✅ |
+| `GET` | `/auth/google/login` | Iniciar login com Google OAuth2 | ✅ |
+| `GET` | `/auth/google/callback` | Callback do Google OAuth2 | ✅ |
 
 ### **Modelos de Dados**
 
@@ -71,31 +81,62 @@ class UserPublic(BaseModel):
 ### **Pré-requisitos**
 - Python 3.11 ou 3.12
 - Poetry instalado
+- Docker e Docker Compose (para execução com PostgreSQL)
 
-### **Instalação**
+### **Opção 1: Execução com Docker (Recomendado)**
 
 ```bash
 # Clone o repositório
 git clone https://github.com/digomes87/FastAPI-like-a-Pro.git
 cd FastAPI-like-a-Pro
 
+# Configure as variáveis de ambiente
+cp .env.example .env
+# Edite o arquivo .env conforme necessário
+
+# Execute com Docker Compose
+docker-compose up -d
+
+# A API estará disponível em: http://localhost:8000
+# PgAdmin estará disponível em: http://localhost:5050
+# Documentação automática: http://localhost:8000/docs
+```
+
+### **Opção 2: Execução Local**
+
+```bash
 # Instale as dependências
 poetry install
 
 # Ative o ambiente virtual
 poetry shell
-```
 
-### **Executando a Aplicação**
+# Execute as migrações (se usando PostgreSQL local)
+poetry run alembic upgrade head
 
-```bash
-# Desenvolvimento
+# Execute a aplicação
 poetry run task run
 # ou
-fastapi dev fast_zero/app.py
+fastapi dev fast_zero/async_app.py
+```
 
-# A API estará disponível em: http://localhost:8000
-# Documentação automática: http://localhost:8000/docs
+### **Configuração do Banco de Dados**
+
+#### **PostgreSQL (Produção)**
+```bash
+# Variáveis de ambiente no .env
+DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/dbname
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_NAME=fast_zero
+DATABASE_USER=fast_zero_user
+DATABASE_PASSWORD=fast_zero_password
+```
+
+#### **SQLite (Desenvolvimento)**
+```bash
+# Para desenvolvimento local simples
+DATABASE_URL=sqlite:///./database.db
 ```
 
 ### **Executando Testes**
@@ -107,10 +148,56 @@ poetry run task test
 # Executar testes com cobertura
 poetry run pytest --cov=fast_zero --cov-report=html
 
+# Executar testes assíncronos
+poetry run pytest tests/ -v
+
 # Verificar qualidade do código
 poetry run task lint
 poetry run task format
 ```
+
+## 🐳 Docker
+
+### **Serviços Disponíveis**
+
+| Serviço | Porta | Descrição |
+|---------|-------|----------|
+| **FastAPI App** | 8000 | Aplicação principal |
+| **PostgreSQL** | 5432 | Banco de dados |
+| **PgAdmin** | 5050 | Interface web para PostgreSQL |
+
+### **Comandos Docker Úteis**
+
+```bash
+# Iniciar todos os serviços
+docker-compose up -d
+
+# Ver logs da aplicação
+docker-compose logs app
+
+# Executar migrações no container
+docker-compose exec app poetry run alembic upgrade head
+
+# Acessar shell do container
+docker-compose exec app bash
+
+# Parar todos os serviços
+docker-compose down
+
+# Rebuild da aplicação
+docker-compose up -d --build app
+```
+
+### **Configuração do PgAdmin**
+
+1. Acesse http://localhost:5050
+2. Login: `admin@admin.com` / Senha: `admin`
+3. Adicione servidor:
+   - Host: `postgres`
+   - Port: `5432`
+   - Database: `fast_zero`
+   - Username: `fast_zero_user`
+   - Password: `fast_zero_password`
 
 ## 🔄 Pipeline CI/CD
 
@@ -174,6 +261,24 @@ terraform apply
 
 ## 🔐 Segurança
 
+### **Autenticação e Autorização**
+- 🔑 **JWT Tokens**: Autenticação stateless com JSON Web Tokens
+- 🔒 **Password Hashing**: Senhas criptografadas com bcrypt
+- ⏰ **Token Expiration**: Tokens com tempo de vida configurável
+- 🛡️ **Protected Routes**: Endpoints protegidos por autenticação
+
+### **Validação de Senhas**
+- 📏 **Comprimento mínimo**: 8 caracteres
+- 🔤 **Maiúsculas e minúsculas**: Obrigatório
+- 🔢 **Números**: Pelo menos um dígito
+- 🔣 **Caracteres especiais**: Pelo menos um símbolo
+
+### **Rate Limiting e Proteção**
+- 🚦 **Rate Limiting**: Limite de requisições por IP
+- 🔒 **Account Lockout**: Bloqueio após tentativas de login falhadas
+- 🛡️ **CORS**: Configuração de origens permitidas
+
+### **DevOps Security**
 - 🛡️ **GitGuardian**: Detecção automática de secrets
 - 🔒 **Environment Variables**: Configuração segura
 - 🚫 **No Hardcoded Secrets**: Política de zero secrets no código

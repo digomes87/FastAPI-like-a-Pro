@@ -35,10 +35,16 @@ class GoogleOAuth:
         Returns:
             Authorization URL for Google OAuth2
         """
-        request = self.oauth.google.authorize_redirect(
-            redirect_uri=redirect_uri
+        # Build authorization URL manually
+        auth_url = (
+            f'https://accounts.google.com/o/oauth2/auth?'
+            f'client_id={self.settings.GOOGLE_CLIENT_ID}&'
+            f'redirect_uri={redirect_uri}&'
+            f'scope=openid email profile&'
+            f'response_type=code&'
+            f'access_type=offline'
         )
-        return str(request.url)
+        return auth_url
     
     async def get_user_info(self, code: str, redirect_uri: str) -> Dict[str, Any]:
         """Exchange authorization code for user information.
