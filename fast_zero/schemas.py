@@ -47,7 +47,8 @@ class UserCreate(UserBase):
         min_length=0,
         max_length=128,
         description=(
-            'Password (minimum 8 characters for regular users, empty allowed for OAuth)'
+            'Password (minimum 8 characters for regular users, '
+            'empty allowed for OAuth)'
         ),
     )
 
@@ -68,7 +69,7 @@ class UserCreate(UserBase):
         # Allow empty password for OAuth users
         if not v:
             return v
-            
+
         try:
             password_validator.validate(v)
         except PasswordValidationError as e:
@@ -80,10 +81,9 @@ class UserCreate(UserBase):
 
 class UserCreateOAuth(UserBase):
     """Schema for creating OAuth users (no password required)."""
-    
+
     password: Optional[str] = Field(
-        default=None,
-        description='Optional password for OAuth users'
+        default=None, description='Optional password for OAuth users'
     )
 
 
