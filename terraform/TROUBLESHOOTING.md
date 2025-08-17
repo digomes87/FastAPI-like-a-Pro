@@ -109,6 +109,35 @@ Error: POST https://api.github.com/repos/owner/repo: 403 Forbidden
 ```
 **Solução**: Verifique se o token tem os scopes necessários.
 
+## ❌ Erro: "refusing to allow a Personal Access Token to create or update workflow without workflow scope"
+
+### Problema
+Este erro ocorre quando você tenta fazer push de workflows (.github/workflows/*.yml) mas o token não tem o escopo `workflow`.
+
+### Soluções
+
+#### 1. Verificar os escopos do seu token atual
+```bash
+curl -H "Authorization: token SEU_TOKEN" https://api.github.com/user
+```
+Verifique o header `X-OAuth-Scopes` na resposta.
+
+#### 2. Gerar um novo token com escopo `workflow`
+1. **Acesse**: [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens)
+2. **Encontre** seu token atual e clique em "Edit" OU crie um novo token
+3. **IMPORTANTE**: Marque o escopo `workflow`
+4. **Atualize** o `terraform.tfvars` com o novo token
+
+#### 3. Configurar o Git para usar o novo token
+```bash
+git remote set-url origin https://SEU_TOKEN@github.com/digomes87/FastAPI-like-a-Pro.git
+```
+OU configure o credential helper:
+```bash
+git config --global credential.helper store
+echo "https://SEU_TOKEN@github.com" > ~/.git-credentials
+```
+
 ### Contato
 
 Se o problema persistir:
