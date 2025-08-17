@@ -7,18 +7,58 @@ from typing import Any, Generator, Type
 # Third-party Libraries
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import event
+from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Connection
-from sqlalchemy.orm import Mapper
+from sqlalchemy.orm import Mapper, Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 # Local Imports
 from fast_zero.app import app
-from fast_zero.models import User
+from fast_zero.database import get_session
+from fast_zero.models import User, table_registry
+from fast_zero.settings import get_settings
+
+settings = get_settings()
 
 
 @pytest.fixture
-def client() -> TestClient:
-    return TestClient(app)
+def session() -> Generator[Session, None, None]:
+    """Create a test database session."""
+    engine = create_engine(
+        settings.TEST_DATABASE_URL,
+        connect_args={'check_same_thread': False},
+        poolclass=StaticPool,
+    )
+    
+    # Create tables
+    table_registry.metadata.create_all(engine)
+    
+    # Create session
+    TestingSessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=engine
+    )
+    
+    session = TestingSessionLocal()
+    
+    try:
+        yield session
+    finally:
+        session.close()
+        # Drop tables
+        table_registry.metadata.drop_all(engine)
+
+
+@pytest.fixture
+def client(session: Session) -> TestClient:
+    """Create a test client with database session override."""
+    def get_session_override():
+        return session
+    
+    app.dependency_overrides[get_session] = get_session_override
+    
+    yield TestClient(app)
+    
+    app.dependency_overrides.clear()
 
 
 @contextmanager
