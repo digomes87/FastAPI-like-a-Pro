@@ -38,9 +38,10 @@ class User:
         comment='User email address'
     )
     
-    password: Mapped[str] = mapped_column(
+    password: Mapped[Optional[str]] = mapped_column(
         String(255),
-        comment='Hashed password'
+        default=None,
+        comment='Hashed password (optional for OAuth users)'
     )
     
     # Optional fields
@@ -71,6 +72,27 @@ class User:
     is_verified: Mapped[bool] = mapped_column(
         default=False,
         comment='Whether the user email is verified'
+    )
+    
+    # OAuth fields
+    google_id: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        default=None,
+        unique=True,
+        index=True,
+        comment='Google OAuth user ID'
+    )
+    
+    picture: Mapped[Optional[str]] = mapped_column(
+        String(500),
+        default=None,
+        comment='User profile picture URL'
+    )
+    
+    oauth_provider: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        default=None,
+        comment='OAuth provider (google, etc.)'
     )
     
     # Timestamps

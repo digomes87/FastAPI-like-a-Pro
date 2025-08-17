@@ -10,7 +10,7 @@ def test_root_deve_retornar_ok_e_ola_mundo(client: TestClient) -> None:
     """Test root endpoint returns correct message."""
     response = client.get('/')
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == {'message': 'Bora pra mais uma'}
+    assert response.json() == {'message': 'Bora pra mais uma (Async version!)'}
 
 
 def test_create_user(client: TestClient) -> None:

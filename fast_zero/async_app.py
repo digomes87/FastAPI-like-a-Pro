@@ -3,15 +3,14 @@ from http import HTTPStatus
 from math import ceil
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fast_zero.async_auth import authenticate_user, create_access_token, get_current_user, validate_password_strength
+from fast_zero.async_auth import authenticate_user, create_access_token, get_current_user
 from fast_zero.async_services import get_async_user_service
 from fast_zero.database import get_async_session
 from fast_zero.models import User
-from fast_zero.password_validator import PasswordValidationError
 from fast_zero.schemas import (
     Message,
     Token,
@@ -20,13 +19,12 @@ from fast_zero.schemas import (
     UserPublic,
     UserUpdate,
 )
-from fast_zero.security import security_manager
 from fast_zero.settings import get_settings
 
 settings = get_settings()
 
 app = FastAPI(
-    title=settings.APP_NAME,
+    title=f"{settings.APP_NAME} (Async)",
     version=settings.APP_VERSION,
     debug=settings.DEBUG,
 )
@@ -36,12 +34,24 @@ app = FastAPI(
     '/',
     status_code=HTTPStatus.OK,
     response_model=Message,
-    summary='Health check',
-    description='Simple health check endpoint'
+    summary='Root endpoint',
+    description='Simple root endpoint'
 )
 async def read_root():
-    """Health check endpoint."""
+    """Root endpoint."""
     return {'message': 'Bora pra mais uma (Async version!)'}
+
+
+@app.get(
+    '/health',
+    status_code=HTTPStatus.OK,
+    response_model=Message,
+    summary='Health check',
+    description='Health check endpoint for Docker and monitoring'
+)
+async def health_check():
+    """Health check endpoint for Docker and monitoring."""
+    return {'message': 'OK'}
 
 
 @app.post(
