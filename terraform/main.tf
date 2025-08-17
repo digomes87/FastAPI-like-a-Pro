@@ -33,16 +33,17 @@ data "github_repository" "fastapi_pro" {
 # }
 
 # Cria o arquivo de workflow para auto-PR
-resource "github_repository_file" "auto_pr_workflow" {
-  repository          = data.github_repository.fastapi_pro.name
-  branch              = "main"
-  file                = ".github/workflows/auto-pr.yml"
-  content             = file("${path.module}/workflows/auto-pr.yml")
-  commit_message      = "Add auto PR creation workflow"
-  commit_author       = "Terraform"
-  commit_email        = "terraform@example.com"
-  overwrite_on_create = true
-}
+# Comentado porque o arquivo já foi criado manualmente
+# resource "github_repository_file" "auto_pr_workflow" {
+#   repository          = data.github_repository.fastapi_pro.name
+#   branch              = "main"
+#   file                = ".github/workflows/auto-pr.yml"
+#   content             = file("${path.module}/workflows/auto-pr.yml")
+#   commit_message      = "Add auto PR creation workflow"
+#   commit_author       = "Terraform"
+#   commit_email        = "terraform@example.com"
+#   overwrite_on_create = true
+# }
 
 # Proteção de branch
 resource "github_branch_protection" "main" {

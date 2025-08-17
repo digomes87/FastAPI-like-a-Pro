@@ -15,7 +15,7 @@ output "workflow_file_path" {
 
 output "auto_pr_workflow_path" {
   description = "Caminho do arquivo de workflow de auto-PR"
-  value       = github_repository_file.auto_pr_workflow.file
+  value       = ".github/workflows/auto-pr.yml"
 }
 
 output "branch_protection_enabled" {
@@ -43,7 +43,7 @@ Próximos passos:
     
 Recursos criados:
 - Workflow de CI/CD em .github/workflows/tests.yml
-- Workflow de Auto-PR em ${github_repository_file.auto_pr_workflow.file}
+- Workflow de Auto-PR em .github/workflows/auto-pr.yml
 - Proteção de branch para 'main'
 - Verificações obrigatórias de status
 - Automação de Pull Requests
