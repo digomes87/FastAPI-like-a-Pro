@@ -14,6 +14,7 @@ from fast_zero.async_auth import (
 )
 from fast_zero.async_services import get_async_user_service
 from fast_zero.database import get_async_session
+from fast_zero.google_oauth import google_oauth
 from fast_zero.models import User
 from fast_zero.schemas import (
     Message,
@@ -28,7 +29,7 @@ from fast_zero.settings import get_settings
 settings = get_settings()
 
 app = FastAPI(
-    title=settings.APP_NAME,
+    title=f'{settings.APP_NAME} (Async)',
     version=settings.APP_VERSION,
     debug=settings.DEBUG,
 )
@@ -38,12 +39,24 @@ app = FastAPI(
     '/',
     status_code=HTTPStatus.OK,
     response_model=Message,
-    summary='Health check',
-    description='Simple health check endpoint',
+    summary='Root endpoint',
+    description='Simple root endpoint',
 )
 async def read_root():
-    """Health check endpoint."""
+    """Root endpoint."""
     return {'message': 'Bora pra mais uma (Async version!)'}
+
+
+@app.get(
+    '/health',
+    status_code=HTTPStatus.OK,
+    response_model=Message,
+    summary='Health check',
+    description='Health check endpoint for Docker and monitoring',
+)
+async def health_check():
+    """Health check endpoint for Docker and monitoring."""
+    return {'message': 'OK'}
 
 
 @app.post(
@@ -120,6 +133,115 @@ async def login_for_access_token(
     )
 
     return {'access_token': access_token, 'token_type': 'bearer'}
+
+
+@app.get(
+    '/auth/google/login',
+    summary='Google OAuth login',
+    description='Redirect to Google OAuth2 authorization',
+)
+async def google_login():
+    """Initiate Google OAuth2 login flow.
+
+    Returns:
+        Authorization URL for Google OAuth2
+    """
+    authorization_url = google_oauth.get_authorization_url(
+        redirect_uri=settings.GOOGLE_REDIRECT_URI
+    )
+
+    return {
+        'authorization_url': authorization_url,
+        'message': 'Redirect to this URL to authenticate with Google',
+    }
+
+
+@app.get(
+    '/auth/google/callback',
+    response_model=Token,
+    summary='Google OAuth callback',
+    description='Handle Google OAuth2 callback and return JWT token',
+)
+async def google_callback(
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+    code: str = Query(..., description='Authorization code from Google'),
+):
+    """Handle Google OAuth2 callback and authenticate user.
+
+    Args:
+        code: Authorization code from Google
+        session: Async database session
+
+    Returns:
+        JWT access token
+
+    Raises:
+        HTTPException: If OAuth flow fails or user creation fails
+    """
+    try:
+        # Get user info from Google
+        user_info = await google_oauth.get_user_info(
+            code=code, redirect_uri=settings.GOOGLE_REDIRECT_URI
+        )
+
+        # Validate user info
+        validated_user_info = google_oauth.validate_user_info(user_info)
+
+        # Get or create user
+        user_service = get_async_user_service(session)
+
+        # Try to find existing user by Google ID
+        user = await user_service.get_user_by_google_id(
+            validated_user_info['google_id']
+        )
+
+        if not user:
+            # Try to find by email
+            user = await user_service.get_user_by_email(
+                validated_user_info['email']
+            )
+
+            if user:
+                # Update existing user with Google info
+                user = await user_service.update_user_oauth_info(
+                    user.id,
+                    google_id=validated_user_info['google_id'],
+                    picture=validated_user_info['picture'],
+                    oauth_provider='google',
+                )
+            else:
+                # Create new user
+                user_create_data = UserCreate(
+                    username=validated_user_info['email'].split('@')[0],
+                    email=validated_user_info['email'],
+                    password='',  # No password for OAuth users
+                    first_name=validated_user_info['first_name'],
+                    last_name=validated_user_info['last_name'],
+                )
+
+                user = await user_service.create_oauth_user(
+                    user_create_data,
+                    google_id=validated_user_info['google_id'],
+                    picture=validated_user_info['picture'],
+                    oauth_provider='google',
+                    is_verified=validated_user_info['verified_email'],
+                )
+
+        # Create access token
+        access_token_expires = timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+        access_token = create_access_token(
+            data={'sub': user.username}, expires_delta=access_token_expires
+        )
+
+        return {'access_token': access_token, 'token_type': 'bearer'}
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            detail=f'OAuth authentication failed: {str(e)}',
+        ) from e
 
 
 @app.get(

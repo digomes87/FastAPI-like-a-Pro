@@ -6,13 +6,24 @@ from sqlalchemy import pool
 from alembic import context
 
 from fast_zero.models import table_registry
-from fast_zero.settings import Settings
+from fast_zero.settings import get_settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-config.set_main_option('sqlalchemy.url', Settings().DATABASE_URL)
+# Get settings instance
+settings = get_settings()
+
+# Convert async URL to sync URL for Alembic
+database_url = settings.DATABASE_URL
+if database_url.startswith('postgresql+asyncpg'):
+    database_url = database_url.replace('postgresql+asyncpg://', 'postgresql://')
+elif database_url.startswith('sqlite+aiosqlite'):
+    database_url = database_url.replace('sqlite+aiosqlite:///', 'sqlite:///')
+
+# Set the database URL from settings
+config.set_main_option('sqlalchemy.url', database_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
