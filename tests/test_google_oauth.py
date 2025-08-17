@@ -36,7 +36,9 @@ def test_google_callback_endpoint_missing_state(client: TestClient) -> None:
 @patch('fast_zero.google_oauth.google_oauth.validate_user_info')
 @patch('fast_zero.google_oauth.google_oauth.get_user_info')
 def test_google_callback_endpoint_success(
-    mock_get_user_info: AsyncMock, mock_validate_user_info: Mock, client: TestClient
+    mock_get_user_info: AsyncMock,
+    mock_validate_user_info: Mock,
+    client: TestClient,
 ) -> None:
     """Test successful Google OAuth callback."""
     # Mock the async get_user_info method
@@ -49,7 +51,7 @@ def test_google_callback_endpoint_success(
         'picture': 'https://example.com/photo.jpg',
         'verified_email': True,
     }
-    
+
     # Mock the validate_user_info method
     mock_validate_user_info.return_value = {
         'email': 'test@gmail.com',
@@ -61,9 +63,7 @@ def test_google_callback_endpoint_success(
     }
 
     # Test the callback endpoint
-    response = client.get(
-        '/auth/google/callback?code=test_code'
-    )
+    response = client.get('/auth/google/callback?code=test_code')
     assert response.status_code == HTTPStatus.OK
     data = response.json()
     assert 'access_token' in data
@@ -80,9 +80,7 @@ def test_google_callback_endpoint_token_error(
     mock_get_user_info.side_effect = Exception('User info fetch failed')
 
     # Test the callback endpoint
-    response = client.get(
-        '/auth/google/callback?code=test_code'
-    )
+    response = client.get('/auth/google/callback?code=test_code')
     assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
     data = response.json()
     assert 'detail' in data
