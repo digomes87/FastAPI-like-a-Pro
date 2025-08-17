@@ -20,16 +20,17 @@ data "github_repository" "fastapi_pro" {
 }
 
 # Cria o arquivo de workflow do GitHub Actions para testes
-resource "github_repository_file" "ci_workflow" {
-  repository          = data.github_repository.fastapi_pro.name
-  branch              = "main"
-  file                = ".github/workflows/tests.yml"
-  content             = file("${path.module}/workflows/tests.yml")
-  commit_message      = "Add CI/CD workflow with tests and linting"
-  commit_author       = "Terraform"
-  commit_email        = "terraform@example.com"
-  overwrite_on_create = true
-}
+# Comentado porque o arquivo já existe no repositório
+# resource "github_repository_file" "ci_workflow" {
+#   repository          = data.github_repository.fastapi_pro.name
+#   branch              = "main"
+#   file                = ".github/workflows/tests.yml"
+#   content             = file("${path.module}/workflows/tests.yml")
+#   commit_message      = "Add CI/CD workflow with tests and linting"
+#   commit_author       = "Terraform"
+#   commit_email        = "terraform@example.com"
+#   overwrite_on_create = true
+# }
 
 # Cria o arquivo de workflow para auto-PR
 resource "github_repository_file" "auto_pr_workflow" {
