@@ -1,5 +1,5 @@
 # Standard Library
-from contextlib import asynccontextmanager, contextmanager
+from contextlib import contextmanager
 from datetime import datetime
 from http import HTTPStatus
 from typing import Any, AsyncGenerator, Generator, Type
@@ -10,7 +10,11 @@ import pytest_asyncio
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import Mapper, Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -31,17 +35,17 @@ def session() -> Generator[Session, None, None]:
         settings.TEST_DATABASE_URL,
         poolclass=StaticPool,
     )
-    
+
     # Create tables
     table_registry.metadata.create_all(engine)
-    
+
     # Create session
     TestingSessionLocal = sessionmaker(
         autocommit=False, autoflush=False, bind=engine
     )
-    
+
     session = TestingSessionLocal()
-    
+
     try:
         yield session
     finally:
@@ -53,44 +57,49 @@ def session() -> Generator[Session, None, None]:
 @pytest_asyncio.fixture
 async def async_session() -> AsyncGenerator[AsyncSession, None]:
     """Create a test async database session."""
-    # Use asyncpg for async testing with PostgreSQL
-    engine = create_async_engine(
-        settings.TEST_DATABASE_URL,
-        poolclass=StaticPool,
+    # Use aiosqlite for async testing with SQLite
+    test_db_url = settings.TEST_DATABASE_URL.replace(
+        'sqlite:///', 'sqlite+aiosqlite:///'
     )
-    
+    engine = create_async_engine(
+        test_db_url,
+        poolclass=StaticPool,
+        connect_args={'check_same_thread': False},
+    )
+
     # Create tables
     async with engine.begin() as conn:
         await conn.run_sync(table_registry.metadata.create_all)
-    
+
     # Create session
     AsyncTestingSessionLocal = async_sessionmaker(
         autocommit=False, autoflush=False, bind=engine
     )
-    
+
     async with AsyncTestingSessionLocal() as session:
         try:
             yield session
         finally:
             await session.close()
-            
+
     # Drop tables
     async with engine.begin() as conn:
         await conn.run_sync(table_registry.metadata.drop_all)
-    
+
     await engine.dispose()
 
 
 @pytest.fixture
 def client(async_session: AsyncSession) -> TestClient:
     """Create a test client with async database session override."""
+
     async def get_async_session_override():
         yield async_session
-    
+
     app.dependency_overrides[get_async_session] = get_async_session_override
-    
+
     yield TestClient(app)
-    
+
     app.dependency_overrides.clear()
 
 
@@ -140,14 +149,14 @@ def test_example_with_mocked_time(client: TestClient) -> None:
 @pytest_asyncio.fixture
 async def user(async_session: AsyncSession) -> User:
     """Create a test user with hashed password asynchronously."""
-    hashed_password = get_password_hash("testpass123")
+    hashed_password = get_password_hash('testpass123')
     user = User(
-        username="testuser",
-        email="test@example.com",
+        username='testuser',
+        email='test@example.com',
         password=hashed_password,
-        first_name="Test",
-        last_name="User",
-        bio="Test user bio"
+        first_name='Test',
+        last_name='User',
+        bio='Test user bio',
     )
     async_session.add(user)
     await async_session.commit()
@@ -158,4 +167,4 @@ async def user(async_session: AsyncSession) -> User:
 @pytest.fixture
 def token(user: User) -> str:
     """Create a JWT token for the test user."""
-    return create_access_token(data={"sub": user.username})
+    return create_access_token(data={'sub': user.username})

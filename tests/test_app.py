@@ -1,9 +1,6 @@
 from http import HTTPStatus
 
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-
-from fast_zero.models import User
 
 
 def test_root_deve_retornar_ok_e_ola_mundo(client: TestClient) -> None:
@@ -45,7 +42,7 @@ def test_create_user_duplicate_username(client: TestClient) -> None:
             'password': 'TestPass9$7!',
         },
     )
-    
+
     # Try to create user with same username
     response = client.post(
         '/users/',
@@ -70,7 +67,7 @@ def test_create_user_duplicate_email(client: TestClient) -> None:
             'password': 'TestPass9$7!',
         },
     )
-    
+
     # Try to create user with same email but different username
     response = client.post(
         '/users/',
@@ -107,7 +104,7 @@ def test_read_users_with_data(client: TestClient) -> None:
             'password': 'TestPass9$7!',
         },
     )
-    
+
     response = client.get('/users/')
     assert response.status_code == HTTPStatus.OK
     data = response.json()
@@ -129,7 +126,7 @@ def test_read_user_by_id(client: TestClient) -> None:
         },
     )
     user_id = create_response.json()['id']
-    
+
     response = client.get(f'/users/{user_id}')
     assert response.status_code == HTTPStatus.OK
     data = response.json()
@@ -157,7 +154,7 @@ def test_update_user(client: TestClient) -> None:
         },
     )
     user_id = create_response.json()['id']
-    
+
     # Update the user
     response = client.put(
         f'/users/{user_id}',
@@ -203,12 +200,12 @@ def test_delete_user(client: TestClient) -> None:
         },
     )
     user_id = create_response.json()['id']
-    
+
     # Delete the user
     response = client.delete(f'/users/{user_id}')
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'User deleted'}
-    
+
     # Verify user is deleted
     get_response = client.get(f'/users/{user_id}')
     assert get_response.status_code == HTTPStatus.NOT_FOUND

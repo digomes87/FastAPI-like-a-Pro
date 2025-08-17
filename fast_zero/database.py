@@ -2,7 +2,11 @@ from typing import AsyncGenerator, Generator
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -16,17 +20,25 @@ engine = create_engine(
     settings.DATABASE_URL,
     connect_args={
         'check_same_thread': False,  # SQLite specific
-    } if settings.DATABASE_URL.startswith('sqlite') else {},
-    poolclass=StaticPool if settings.DATABASE_URL.startswith('sqlite') else None,
+    }
+    if settings.DATABASE_URL.startswith('sqlite')
+    else {},
+    poolclass=StaticPool
+    if settings.DATABASE_URL.startswith('sqlite')
+    else None,
     echo=settings.DEBUG,  # Log SQL queries in debug mode
 )
 
 # Async Database Engine Configuration
 async_database_url = settings.DATABASE_URL
 if async_database_url.startswith('sqlite'):
-    async_database_url = async_database_url.replace('sqlite:///', 'sqlite+aiosqlite:///')
+    async_database_url = async_database_url.replace(
+        'sqlite:///', 'sqlite+aiosqlite:///'
+    )
 elif async_database_url.startswith('postgresql'):
-    async_database_url = async_database_url.replace('postgresql://', 'postgresql+asyncpg://')
+    async_database_url = async_database_url.replace(
+        'postgresql://', 'postgresql+asyncpg://'
+    )
 
 async_engine = create_async_engine(
     async_database_url,
@@ -98,14 +110,14 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
 
 class DatabaseManager:
     """Database manager for handling database operations."""
-    
+
     def __init__(self, database_url: str | None = None):
         self.database_url = database_url or settings.DATABASE_URL
         self._engine = None
         self._session_factory = None
         self._async_engine = None
         self._async_session_factory = None
-    
+
     @property
     def engine(self) -> Engine:
         """Get database engine."""
@@ -114,12 +126,16 @@ class DatabaseManager:
                 self.database_url,
                 connect_args={
                     'check_same_thread': False,
-                } if self.database_url.startswith('sqlite') else {},
-                poolclass=StaticPool if self.database_url.startswith('sqlite') else None,
+                }
+                if self.database_url.startswith('sqlite')
+                else {},
+                poolclass=StaticPool
+                if self.database_url.startswith('sqlite')
+                else None,
                 echo=settings.DEBUG,
             )
         return self._engine
-    
+
     @property
     def session_factory(self) -> sessionmaker[Session]:
         """Get session factory."""
@@ -130,23 +146,27 @@ class DatabaseManager:
                 bind=self.engine,
             )
         return self._session_factory
-    
+
     @property
     def async_engine(self):
         """Get async database engine."""
         if self._async_engine is None:
             async_url = self.database_url
             if async_url.startswith('sqlite'):
-                async_url = async_url.replace('sqlite:///', 'sqlite+aiosqlite:///')
+                async_url = async_url.replace(
+                    'sqlite:///', 'sqlite+aiosqlite:///'
+                )
             elif async_url.startswith('postgresql'):
-                async_url = async_url.replace('postgresql://', 'postgresql+asyncpg://')
-            
+                async_url = async_url.replace(
+                    'postgresql://', 'postgresql+asyncpg://'
+                )
+
             self._async_engine = create_async_engine(
                 async_url,
                 echo=settings.DEBUG,
             )
         return self._async_engine
-    
+
     @property
     def async_session_factory(self) -> async_sessionmaker[AsyncSession]:
         """Get async session factory."""
@@ -157,15 +177,15 @@ class DatabaseManager:
                 expire_on_commit=False,
             )
         return self._async_session_factory
-    
+
     def create_tables(self):
         """Create all database tables."""
         table_registry.metadata.create_all(bind=self.engine)
-    
+
     def drop_tables(self):
         """Drop all database tables."""
         table_registry.metadata.drop_all(bind=self.engine)
-    
+
     def get_session(self) -> Generator[Session, None, None]:
         """Get database session."""
         session = self.session_factory()
@@ -177,7 +197,7 @@ class DatabaseManager:
             raise
         finally:
             session.close()
-    
+
     async def get_async_session(self) -> AsyncGenerator[AsyncSession, None]:
         """Get async database session."""
         async with self.async_session_factory() as session:
@@ -187,12 +207,12 @@ class DatabaseManager:
             except Exception:
                 await session.rollback()
                 raise
-    
+
     async def create_tables_async(self):
         """Create all database tables asynchronously."""
         async with self.async_engine.begin() as conn:
             await conn.run_sync(table_registry.metadata.create_all)
-    
+
     async def drop_tables_async(self):
         """Drop all database tables asynchronously."""
         async with self.async_engine.begin() as conn:

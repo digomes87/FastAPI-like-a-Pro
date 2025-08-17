@@ -41,6 +41,12 @@ extend-exclude = ['migrations']
 [tool.ruff.lint]
 preview = true
 select = ['I', 'F', 'E', 'W', 'PL', 'PT']
+ignore = [
+    'PLR6301',  # Method could be a function (pytest methods)
+    'PLR0913',  # Too many arguments
+    'PLR2004',  # Magic value used in comparison
+    'PT011',    # pytest.raises without match
+]
 
 [tool.ruff.format]
 preview = true
