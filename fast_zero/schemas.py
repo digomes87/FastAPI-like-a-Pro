@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
+
+from fast_zero.password_validator import password_validator, PasswordValidationError
 
 
 class Message(BaseModel):
@@ -39,9 +41,29 @@ class UserCreate(UserBase):
     """Schema for creating a new user."""
     password: str = Field(
         min_length=8,
-        max_length=255,
-        description='Password (minimum 8 characters)'
+        max_length=128,
+        description='Password (minimum 8 characters, must meet security requirements)'
     )
+    
+    @field_validator('password')
+    @classmethod
+    def validate_password_strength(cls, v: str) -> str:
+        """Validate password meets security requirements.
+        
+        Args:
+            v: Password value
+            
+        Returns:
+            Validated password
+            
+        Raises:
+            ValueError: If password doesn't meet requirements
+        """
+        try:
+            password_validator.validate(v)
+        except PasswordValidationError as e:
+            raise ValueError(f"Password validation failed: {'; '.join(e.errors)}")
+        return v
 
 
 class UserUpdate(BaseModel):

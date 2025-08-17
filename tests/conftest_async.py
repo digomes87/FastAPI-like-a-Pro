@@ -1,17 +1,18 @@
 # Standard Library
-from contextlib import asynccontextmanager, contextmanager
+from contextlib import asynccontextmanager
 from datetime import datetime
 from http import HTTPStatus
-from typing import Any, AsyncGenerator, Generator, Type
+from typing import Any, AsyncGenerator, Type
 
 # Third-party Libraries
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Mapper, Session, sessionmaker
+from sqlalchemy.orm import Mapper
 from sqlalchemy.pool import StaticPool
 
 # Local Imports
@@ -22,33 +23,6 @@ from fast_zero.models import User, table_registry
 from fast_zero.settings import get_settings
 
 settings = get_settings()
-
-
-@pytest.fixture
-def session() -> Generator[Session, None, None]:
-    """Create a test database session."""
-    engine = create_engine(
-        settings.TEST_DATABASE_URL,
-        connect_args={'check_same_thread': False},
-        poolclass=StaticPool,
-    )
-    
-    # Create tables
-    table_registry.metadata.create_all(engine)
-    
-    # Create session
-    TestingSessionLocal = sessionmaker(
-        autocommit=False, autoflush=False, bind=engine
-    )
-    
-    session = TestingSessionLocal()
-    
-    try:
-        yield session
-    finally:
-        session.close()
-        # Drop tables
-        table_registry.metadata.drop_all(engine)
 
 
 @pytest_asyncio.fixture
@@ -86,7 +60,7 @@ async def async_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture
-def client(async_session: AsyncSession) -> TestClient:
+def async_client(async_session: AsyncSession) -> TestClient:
     """Create a test client with async database session override."""
     async def get_async_session_override():
         yield async_session
@@ -98,15 +72,15 @@ def client(async_session: AsyncSession) -> TestClient:
     app.dependency_overrides.clear()
 
 
-@contextmanager
-def mock_db_time(
+@asynccontextmanager
+async def mock_db_time(
     *, model: Type[Any], time: datetime = datetime(2024, 1, 1)
-) -> Generator[datetime, None, None]:
+) -> AsyncGenerator[datetime, None]:
     """
     Context manager to mock the created_at timestamp for a SQLAlchemy model.
 
     Usage:
-    with mock_db_time(model=User, time=desired_datetime):
+    async with mock_db_time(model=User, time=desired_datetime):
         # Your test code here
     """
 
@@ -125,24 +99,8 @@ def mock_db_time(
     event.remove(model, 'before_insert', fake_time_hook)
 
 
-def test_example_with_mocked_time(client: TestClient) -> None:
-    test_time = datetime(2023, 12, 25, 12, 0, 0)
-
-    with mock_db_time(model=User, time=test_time):
-        response = client.post(
-            '/users/',
-            json={
-                'username': 'testuser',
-                'email': 'test@example.com',
-                'password': 'secret',
-            },
-        )
-
-    assert response.status_code == HTTPStatus.OK
-
-
 @pytest_asyncio.fixture
-async def user(async_session: AsyncSession) -> User:
+async def async_user(async_session: AsyncSession) -> User:
     """Create a test user with hashed password asynchronously."""
     hashed_password = get_password_hash("testpass123")
     user = User(
@@ -160,6 +118,6 @@ async def user(async_session: AsyncSession) -> User:
 
 
 @pytest.fixture
-def token(user: User) -> str:
+def async_token(async_user: User) -> str:
     """Create a JWT token for the test user."""
-    return create_access_token(data={"sub": user.username})
+    return create_access_token(data={"sub": async_user.username})

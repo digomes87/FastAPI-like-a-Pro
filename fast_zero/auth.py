@@ -31,12 +31,12 @@ def get_password_hash(password: str) -> str:
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """Cria um token JWT de acesso."""
+    """Cria um token de acesso JWT."""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.now() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
@@ -69,11 +69,11 @@ def get_current_user(
     return user
 
 
-def authenticate_user(session: Session, username: str, password: str) -> Optional[User]:
+def authenticate_user(session: Session, username: str, password: str):
     """Autentica um usuário verificando username e senha."""
     user = session.query(User).filter(User.username == username).first()
     if not user:
-        return None
+        return False
     if not verify_password(password, user.password):
-        return None
+        return False
     return user

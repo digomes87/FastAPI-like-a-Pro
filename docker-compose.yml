@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: fast_zero_postgres
+    environment:
+      POSTGRES_DB: fast_zero
+      POSTGRES_USER: fast_zero_user
+      POSTGRES_PASSWORD: fast_zero_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - fast_zero_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fast_zero_user -d fast_zero"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fast_zero_app
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://fast_zero_user:fast_zero_password@postgres:5432/fast_zero
+      - TEST_DATABASE_URL=postgresql+asyncpg://fast_zero_user:fast_zero_password@postgres:5432/fast_zero_test
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - SECRET_KEY=your-super-secret-key-change-in-production-min-32-chars
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI:-http://localhost:8000/auth/google/callback}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fast_zero_network
+    volumes:
+      - .:/app
+    command: >
+      sh -c "poetry run alembic upgrade head &&
+             poetry run uvicorn fast_zero.async_app:app --host 0.0.0.0 --port 8000 --reload"
+
+  # PostgreSQL Admin (pgAdmin)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: fast_zero_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@fastzero.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - fast_zero_network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  fast_zero_network:
+    driver: bridge

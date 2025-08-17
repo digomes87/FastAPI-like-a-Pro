@@ -2,21 +2,21 @@ from typing import Optional, Sequence
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from fast_zero.auth import get_password_hash
 from fast_zero.models import User
 from fast_zero.schemas import UserCreate, UserUpdate
 
 
-class UserService:
-    """Service class for user-related operations."""
+class AsyncUserService:
+    """Async service class for user-related operations."""
     
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
     
-    def create_user(self, user_data: UserCreate) -> User:
-        """Create a new user.
+    async def create_user(self, user_data: UserCreate) -> User:
+        """Create a new user asynchronously.
         
         Args:
             user_data: User creation data
@@ -40,10 +40,10 @@ class UserService:
         
         try:
             self.session.add(user)
-            self.session.flush()  # Flush to get the ID
+            await self.session.flush()  # Flush to get the ID
             return user
         except IntegrityError as e:
-            self.session.rollback()
+            await self.session.rollback()
             error_msg = str(e).lower()
             # Check for specific constraint violations
             if 'users.username' in error_msg or 'unique constraint failed: users.username' in error_msg:
@@ -56,8 +56,8 @@ class UserService:
                 raise ValueError('Email already exists') from e
             raise e
     
-    def get_user_by_id(self, user_id: int) -> Optional[User]:
-        """Get user by ID.
+    async def get_user_by_id(self, user_id: int) -> Optional[User]:
+        """Get user by ID asynchronously.
         
         Args:
             user_id: User ID
@@ -65,10 +65,10 @@ class UserService:
         Returns:
             User instance or None if not found
         """
-        return self.session.get(User, user_id)
+        return await self.session.get(User, user_id)
     
-    def get_user_by_username(self, username: str) -> Optional[User]:
-        """Get user by username.
+    async def get_user_by_username(self, username: str) -> Optional[User]:
+        """Get user by username asynchronously.
         
         Args:
             username: Username
@@ -77,10 +77,11 @@ class UserService:
             User instance or None if not found
         """
         stmt = select(User).where(User.username == username)
-        return self.session.scalar(stmt)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
     
-    def get_user_by_email(self, email: str) -> Optional[User]:
-        """Get user by email.
+    async def get_user_by_email(self, email: str) -> Optional[User]:
+        """Get user by email asynchronously.
         
         Args:
             email: Email address
@@ -89,15 +90,16 @@ class UserService:
             User instance or None if not found
         """
         stmt = select(User).where(User.email == email)
-        return self.session.scalar(stmt)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
     
-    def get_users(
+    async def get_users(
         self,
         skip: int = 0,
         limit: int = 100,
         active_only: bool = True
     ) -> Sequence[User]:
-        """Get list of users with pagination.
+        """Get list of users with pagination asynchronously.
         
         Args:
             skip: Number of users to skip
@@ -113,10 +115,11 @@ class UserService:
             stmt = stmt.where(User.is_active == True)
         
         stmt = stmt.offset(skip).limit(limit)
-        return self.session.scalars(stmt).all()
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
     
-    def update_user(self, user_id: int, user_data: UserUpdate) -> Optional[User]:
-        """Update user information.
+    async def update_user(self, user_id: int, user_data: UserUpdate) -> Optional[User]:
+        """Update user information asynchronously.
         
         Args:
             user_id: User ID
@@ -128,7 +131,7 @@ class UserService:
         Raises:
             IntegrityError: If username or email already exists
         """
-        user = self.get_user_by_id(user_id)
+        user = await self.get_user_by_id(user_id)
         if not user:
             return None
         
@@ -139,18 +142,19 @@ class UserService:
             for field, value in update_data.items():
                 setattr(user, field, value)
             
-            self.session.flush()
+            await self.session.flush()
+            await self.session.refresh(user)
             return user
         except IntegrityError as e:
-            self.session.rollback()
+            await self.session.rollback()
             if 'username' in str(e):
                 raise ValueError('Username already exists') from e
             elif 'email' in str(e):
                 raise ValueError('Email already exists') from e
             raise e
     
-    def delete_user(self, user_id: int) -> bool:
-        """Delete user by ID.
+    async def delete_user(self, user_id: int) -> bool:
+        """Delete user by ID asynchronously.
         
         Args:
             user_id: User ID
@@ -158,16 +162,16 @@ class UserService:
         Returns:
             True if user was deleted, False if not found
         """
-        user = self.get_user_by_id(user_id)
+        user = await self.get_user_by_id(user_id)
         if not user:
             return False
         
-        self.session.delete(user)
-        self.session.flush()
+        await self.session.delete(user)
+        await self.session.flush()
         return True
     
-    def deactivate_user(self, user_id: int) -> Optional[User]:
-        """Deactivate user (soft delete).
+    async def deactivate_user(self, user_id: int) -> Optional[User]:
+        """Deactivate user (soft delete) asynchronously.
         
         Args:
             user_id: User ID
@@ -175,16 +179,16 @@ class UserService:
         Returns:
             Deactivated user instance or None if not found
         """
-        user = self.get_user_by_id(user_id)
+        user = await self.get_user_by_id(user_id)
         if not user:
             return None
         
         user.is_active = False
-        self.session.flush()
+        await self.session.flush()
         return user
     
-    def activate_user(self, user_id: int) -> Optional[User]:
-        """Activate user.
+    async def activate_user(self, user_id: int) -> Optional[User]:
+        """Activate user asynchronously.
         
         Args:
             user_id: User ID
@@ -192,16 +196,16 @@ class UserService:
         Returns:
             Activated user instance or None if not found
         """
-        user = self.get_user_by_id(user_id)
+        user = await self.get_user_by_id(user_id)
         if not user:
             return None
         
         user.is_active = True
-        self.session.flush()
+        await self.session.flush()
         return user
     
-    def count_users(self, active_only: bool = True) -> int:
-        """Count total number of users.
+    async def count_users(self, active_only: bool = True) -> int:
+        """Count total number of users asynchronously.
         
         Args:
             active_only: Whether to count only active users
@@ -214,16 +218,17 @@ class UserService:
         if active_only:
             stmt = stmt.where(User.is_active == True)
         
-        return len(self.session.scalars(stmt).all())
+        result = await self.session.execute(stmt)
+        return len(result.scalars().all())
 
 
-def get_user_service(session: Session) -> UserService:
-    """Get user service instance.
+def get_async_user_service(session: AsyncSession) -> AsyncUserService:
+    """Get async user service instance.
     
     Args:
-        session: Database session
+        session: Async database session
         
     Returns:
-        UserService instance
+        AsyncUserService instance
     """
-    return UserService(session)
+    return AsyncUserService(session)
