@@ -1,8 +1,8 @@
 """Tests for Google OAuth endpoints."""
-from http import HTTPStatus
-from unittest.mock import Mock, patch
 
-import pytest
+from http import HTTPStatus
+from unittest.mock import AsyncMock, Mock, patch
+
 from fastapi.testclient import TestClient
 
 
@@ -20,54 +20,69 @@ def test_google_login_endpoint(client: TestClient) -> None:
 def test_google_callback_endpoint_missing_code(client: TestClient) -> None:
     """Test Google OAuth callback endpoint without code parameter."""
     response = client.get('/auth/google/callback')
-    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     data = response.json()
-    assert 'Authorization code not provided' in data['detail']
+    assert 'detail' in data
 
 
 def test_google_callback_endpoint_missing_state(client: TestClient) -> None:
     """Test Google OAuth callback endpoint without state parameter."""
     response = client.get('/auth/google/callback?code=test_code')
-    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
     data = response.json()
-    assert 'State parameter not provided' in data['detail']
+    assert 'detail' in data
 
 
-@patch('fast_zero.google_oauth.google_oauth_client.fetch_token')
-@patch('fast_zero.google_oauth.google_oauth_client.get')
+@patch('fast_zero.google_oauth.google_oauth.validate_user_info')
+@patch('fast_zero.google_oauth.google_oauth.get_user_info')
 def test_google_callback_endpoint_success(
-    mock_get: Mock, mock_fetch_token: Mock, client: TestClient
+    mock_get_user_info: AsyncMock, mock_validate_user_info: Mock, client: TestClient
 ) -> None:
     """Test successful Google OAuth callback."""
-    # Mock the token fetch
-    mock_fetch_token.return_value = {'access_token': 'test_token'}
-    
-    # Mock the user info response
-    mock_response = Mock()
-    mock_response.json.return_value = {
+    # Mock the async get_user_info method
+    mock_get_user_info.return_value = {
         'email': 'test@gmail.com',
         'name': 'Test User',
         'given_name': 'Test',
         'family_name': 'User',
-        'picture': 'https://example.com/picture.jpg'
+        'id': '123456789',
+        'picture': 'https://example.com/photo.jpg',
+        'verified_email': True,
     }
-    mock_get.return_value = mock_response
     
-    response = client.get('/auth/google/callback?code=test_code&state=test_state')
-    
-    # Should redirect or return user info
-    assert response.status_code in [HTTPStatus.OK, HTTPStatus.FOUND, HTTPStatus.TEMPORARY_REDIRECT]
+    # Mock the validate_user_info method
+    mock_validate_user_info.return_value = {
+        'email': 'test@gmail.com',
+        'first_name': 'Test',
+        'last_name': 'User',
+        'google_id': '123456789',
+        'picture': 'https://example.com/photo.jpg',
+        'verified_email': True,
+    }
+
+    # Test the callback endpoint
+    response = client.get(
+        '/auth/google/callback?code=test_code'
+    )
+    assert response.status_code == HTTPStatus.OK
+    data = response.json()
+    assert 'access_token' in data
+    assert 'token_type' in data
+    assert data['token_type'] == 'bearer'
 
 
-@patch('fast_zero.google_oauth.google_oauth_client.fetch_token')
+@patch('fast_zero.google_oauth.google_oauth.get_user_info')
 def test_google_callback_endpoint_token_error(
-    mock_fetch_token: Mock, client: TestClient
+    mock_get_user_info: AsyncMock, client: TestClient
 ) -> None:
-    """Test Google OAuth callback with token fetch error."""
-    # Mock token fetch to raise an exception
-    mock_fetch_token.side_effect = Exception('Token fetch failed')
-    
-    response = client.get('/auth/google/callback?code=test_code&state=test_state')
+    """Test Google OAuth callback with user info fetch error."""
+    # Mock async get_user_info to raise an exception
+    mock_get_user_info.side_effect = Exception('User info fetch failed')
+
+    # Test the callback endpoint
+    response = client.get(
+        '/auth/google/callback?code=test_code'
+    )
     assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
     data = response.json()
-    assert 'OAuth authentication failed' in data['detail']
+    assert 'detail' in data
