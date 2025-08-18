@@ -31,6 +31,7 @@ export class AuthInterceptor implements HttpInterceptor {
     // List of endpoints that don't need authentication
     const publicEndpoints = [
       '/auth/login',
+      '/auth/token',
       '/auth/register',
       '/auth/google',
       '/auth/refresh'
