@@ -15,7 +15,6 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import Mapper
-from sqlalchemy.pool import StaticPool
 
 # Local Imports
 from fast_zero.app import app
@@ -30,15 +29,16 @@ settings = get_settings()
 @pytest_asyncio.fixture
 async def async_session() -> AsyncGenerator[AsyncSession, None]:
     """Create a test async database session."""
-    # Use aiosqlite for async testing
-    test_db_url = settings.TEST_DATABASE_URL.replace(
-        'sqlite:///', 'sqlite+aiosqlite:///'
-    )
+    # Use asyncpg for async testing with PostgreSQL
+    async_database_url = settings.TEST_DATABASE_URL
+    if async_database_url.startswith('postgresql://'):
+        async_database_url = async_database_url.replace(
+            'postgresql://', 'postgresql+asyncpg://'
+        )
 
     engine = create_async_engine(
-        test_db_url,
-        connect_args={'check_same_thread': False},
-        poolclass=StaticPool,
+        async_database_url,
+        echo=False,
     )
 
     # Create tables

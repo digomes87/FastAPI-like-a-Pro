@@ -142,67 +142,51 @@ def test_read_user_not_found(client: TestClient) -> None:
     assert 'User not found' in response.json()['detail']
 
 
-def test_update_user(client: TestClient) -> None:
+def test_update_user(client: TestClient, sync_user, token: str) -> None:
     """Test updating a user."""
-    # Create a user first
-    create_response = client.post(
-        '/users/',
-        json={
-            'username': 'alice',
-            'email': 'alice@example.com',
-            'password': 'TestPass9$7!',
-        },
-    )
-    user_id = create_response.json()['id']
+    user_id = sync_user.id
 
-    # Update the user
+    # Update the user with authentication (username is immutable)
     response = client.put(
         f'/users/{user_id}',
         json={
-            'username': 'alice_updated',
-            'email': 'alice_updated@example.com',
-            'first_name': 'Alice',
-            'last_name': 'Smith',
+            'email': 'test_updated@example.com',
+            'first_name': 'Test Updated',
+            'last_name': 'User Updated',
             'bio': 'Updated bio',
         },
+        headers={'Authorization': f'Bearer {token}'},
     )
     assert response.status_code == HTTPStatus.OK
     data = response.json()
-    assert data['username'] == 'alice_updated'
-    assert data['email'] == 'alice_updated@example.com'
-    assert data['first_name'] == 'Alice'
-    assert data['last_name'] == 'Smith'
+    assert data['username'] == 'testuser'  # Username should remain unchanged
+    assert data['email'] == 'test_updated@example.com'
+    assert data['first_name'] == 'Test Updated'
+    assert data['last_name'] == 'User Updated'
     assert data['bio'] == 'Updated bio'
 
 
-def test_update_user_not_found(client: TestClient) -> None:
+def test_update_user_not_found(client: TestClient, token: str) -> None:
     """Test updating a non-existent user returns 404."""
     response = client.put(
         '/users/999',
         json={
-            'username': 'alice_updated',
             'email': 'alice_updated@example.com',
         },
+        headers={'Authorization': f'Bearer {token}'},
     )
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert 'User not found' in response.json()['detail']
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert 'Not enough permissions' in response.json()['detail']
 
 
-def test_delete_user(client: TestClient) -> None:
+def test_delete_user(client: TestClient, sync_user, token: str) -> None:
     """Test deleting a user."""
-    # Create a user first
-    create_response = client.post(
-        '/users/',
-        json={
-            'username': 'alice',
-            'email': 'alice@example.com',
-            'password': 'TestPass9$7!',
-        },
-    )
-    user_id = create_response.json()['id']
+    user_id = sync_user.id
 
-    # Delete the user
-    response = client.delete(f'/users/{user_id}')
+    # Delete the user with authentication
+    response = client.delete(
+        f'/users/{user_id}', headers={'Authorization': f'Bearer {token}'}
+    )
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'User deleted'}
 
@@ -211,8 +195,10 @@ def test_delete_user(client: TestClient) -> None:
     assert get_response.status_code == HTTPStatus.NOT_FOUND
 
 
-def test_delete_user_not_found(client: TestClient) -> None:
+def test_delete_user_not_found(client: TestClient, token: str) -> None:
     """Test deleting a non-existent user returns 404."""
-    response = client.delete('/users/999')
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert 'User not found' in response.json()['detail']
+    response = client.delete(
+        '/users/999', headers={'Authorization': f'Bearer {token}'}
+    )
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert 'Not enough permissions' in response.json()['detail']

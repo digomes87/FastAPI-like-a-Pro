@@ -1,7 +1,9 @@
+import os
+
 import bcrypt
 
 # Gerar hash da senha
-password = "testpass123"
+password = os.getenv('PASSWORD_TO_HASH', 'CHANGE_THIS_PASSWORD')
 salt = bcrypt.gensalt()
 hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
 

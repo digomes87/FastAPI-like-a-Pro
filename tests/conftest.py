@@ -17,12 +17,11 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import Mapper, Session, sessionmaker
 
-
 # Local Imports
 from fast_zero.app import app as sync_app
 from fast_zero.async_app import app as async_app
 from fast_zero.auth import create_access_token, get_password_hash
-from fast_zero.database import get_async_session
+from fast_zero.database import get_async_session, get_session
 from fast_zero.models import User, table_registry
 from fast_zero.settings import get_settings
 
@@ -38,7 +37,7 @@ def session() -> Generator[Session, None, None]:
         sync_database_url = sync_database_url.replace(
             'postgresql+asyncpg://', 'postgresql://'
         )
-    
+
     engine = create_engine(
         sync_database_url,
         echo=False,
@@ -50,7 +49,7 @@ def session() -> Generator[Session, None, None]:
     # Create session with transaction
     connection = engine.connect()
     transaction = connection.begin()
-    
+
     TestingSessionLocal = sessionmaker(
         autocommit=False, autoflush=False, bind=connection
     )
@@ -104,8 +103,7 @@ async def async_session() -> AsyncGenerator[AsyncSession, None]:
 @pytest.fixture
 def client(session: Session) -> TestClient:
     """Create a test client with database session override."""
-    from fast_zero.database import get_session
-    
+
     def get_session_override():
         return session
 
@@ -124,7 +122,9 @@ def async_client(async_session: AsyncSession) -> TestClient:
     def get_async_session_override():
         return async_session
 
-    async_app.dependency_overrides[get_async_session] = get_async_session_override
+    async_app.dependency_overrides[get_async_session] = (
+        get_async_session_override
+    )
 
     with TestClient(async_app) as test_client:
         yield test_client

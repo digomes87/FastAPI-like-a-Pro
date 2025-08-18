@@ -1,6 +1,6 @@
 from typing import AsyncGenerator, Generator
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from fast_zero.models import table_registry
 from fast_zero.settings import get_settings
@@ -16,26 +15,22 @@ from fast_zero.settings import get_settings
 settings = get_settings()
 
 # Database Engine Configuration
+sync_database_url = settings.DATABASE_URL
+if sync_database_url.startswith('postgresql+asyncpg://'):
+    sync_database_url = sync_database_url.replace(
+        'postgresql+asyncpg://', 'postgresql://'
+    )
+
 engine = create_engine(
-    settings.DATABASE_URL,
-    connect_args={
-        'check_same_thread': False,  # SQLite specific
-    }
-    if settings.DATABASE_URL.startswith('sqlite')
-    else {},
-    poolclass=StaticPool
-    if settings.DATABASE_URL.startswith('sqlite')
-    else None,
+    sync_database_url,
+    connect_args={},
+    poolclass=None,
     echo=settings.DEBUG,  # Log SQL queries in debug mode
 )
 
 # Async Database Engine Configuration
 async_database_url = settings.DATABASE_URL
-if async_database_url.startswith('sqlite'):
-    async_database_url = async_database_url.replace(
-        'sqlite:///', 'sqlite+aiosqlite:///'
-    )
-elif async_database_url.startswith('postgresql'):
+if async_database_url.startswith('postgresql'):
     async_database_url = async_database_url.replace(
         'postgresql://', 'postgresql+asyncpg://'
     )
@@ -58,20 +53,6 @@ AsyncSessionLocal = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
 )
-
-
-@event.listens_for(Engine, 'connect')
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    """Set SQLite pragmas for better performance and data integrity."""
-    if 'sqlite' in str(dbapi_connection):
-        cursor = dbapi_connection.cursor()
-        # Enable foreign key constraints
-        cursor.execute('PRAGMA foreign_keys=ON')
-        # Enable WAL mode for better concurrency
-        cursor.execute('PRAGMA journal_mode=WAL')
-        # Set synchronous mode for better performance
-        cursor.execute('PRAGMA synchronous=NORMAL')
-        cursor.close()
 
 
 def create_database():
@@ -124,14 +105,8 @@ class DatabaseManager:
         if self._engine is None:
             self._engine = create_engine(
                 self.database_url,
-                connect_args={
-                    'check_same_thread': False,
-                }
-                if self.database_url.startswith('sqlite')
-                else {},
-                poolclass=StaticPool
-                if self.database_url.startswith('sqlite')
-                else None,
+                connect_args={},
+                poolclass=None,
                 echo=settings.DEBUG,
             )
         return self._engine
@@ -152,11 +127,7 @@ class DatabaseManager:
         """Get async database engine."""
         if self._async_engine is None:
             async_url = self.database_url
-            if async_url.startswith('sqlite'):
-                async_url = async_url.replace(
-                    'sqlite:///', 'sqlite+aiosqlite:///'
-                )
-            elif async_url.startswith('postgresql'):
+            if async_url.startswith('postgresql'):
                 async_url = async_url.replace(
                     'postgresql://', 'postgresql+asyncpg://'
                 )

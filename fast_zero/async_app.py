@@ -39,15 +39,15 @@ app = FastAPI(
 # Configure CORS
 allowed_origins = json.loads(settings.CORS_ORIGINS)
 # Add Angular development server
-if "http://localhost:4200" not in allowed_origins:
-    allowed_origins.append("http://localhost:4200")
+if 'http://localhost:4200' not in allowed_origins:
+    allowed_origins.append('http://localhost:4200')
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 
 

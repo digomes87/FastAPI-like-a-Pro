@@ -113,12 +113,12 @@ async def authenticate_user(
         User instance if authentication successful, False otherwise
     """
     user_service = get_async_user_service(session)
-    
+
     # Try to find user by username or email
     user = await user_service.get_user_by_username(username_or_email)
     if not user:
         user = await user_service.get_user_by_email(username_or_email)
-    
+
     if not user:
         return False
 
