@@ -1,9 +1,11 @@
+import json
 from datetime import timedelta
 from http import HTTPStatus
 from math import ceil
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,6 +34,20 @@ app = FastAPI(
     title=f'{settings.APP_NAME} (Async)',
     version=settings.APP_VERSION,
     debug=settings.DEBUG,
+)
+
+# Configure CORS
+allowed_origins = json.loads(settings.CORS_ORIGINS)
+# Add Angular development server
+if "http://localhost:4200" not in allowed_origins:
+    allowed_origins.append("http://localhost:4200")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 

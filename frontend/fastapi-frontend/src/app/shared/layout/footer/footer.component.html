@@ -1,0 +1,49 @@
+<footer class="app-footer">
+  <mat-divider></mat-divider>
+  
+  <div class="footer-content">
+    <!-- Left Section - Copyright -->
+    <div class="footer-left">
+      <p class="copyright">
+        © {{ currentYear }} FastAPI Frontend. Todos os direitos reservados.
+      </p>
+      <p class="version">
+        Versão {{ appVersion }}
+      </p>
+    </div>
+
+    <!-- Center Section - Links -->
+    <div class="footer-center">
+      <div class="footer-links">
+        <button mat-button class="footer-link" (click)="openDocumentation()">
+          <mat-icon>description</mat-icon>
+          Documentação
+        </button>
+        
+        <button mat-button class="footer-link" (click)="openSupport()">
+          <mat-icon>support</mat-icon>
+          Suporte
+        </button>
+        
+        <button mat-button class="footer-link" (click)="openGitHub()">
+          <mat-icon>code</mat-icon>
+          GitHub
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Section - Tech Stack -->
+    <div class="footer-right">
+      <div class="tech-stack">
+        <span class="tech-item">
+          <mat-icon class="tech-icon">web</mat-icon>
+          Angular
+        </span>
+        <span class="tech-item">
+          <mat-icon class="tech-icon">storage</mat-icon>
+          FastAPI
+        </span>
+      </div>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,46 @@
+<div class="sidebar-container">
+  <!-- User Profile Section -->
+  <div class="user-profile" *ngIf="currentUser">
+    <div class="user-avatar">
+      <span class="user-initials">{{ getUserInitials() }}</span>
+    </div>
+    <div class="user-info">
+      <h3 class="user-name">{{ currentUser.username }}</h3>
+      <p class="user-email">{{ currentUser.email }}</p>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Navigation Menu -->
+  <nav class="sidebar-nav">
+    <mat-nav-list>
+      <mat-list-item 
+        *ngFor="let item of menuItems" 
+        class="nav-item"
+        [class.active]="isActiveRoute(item.route)"
+        (click)="navigateTo(item.route)"
+        [matTooltip]="item.tooltip || ''"
+        matTooltipPosition="right">
+        <mat-icon matListItemIcon [class.active-icon]="isActiveRoute(item.route)">{{ item.icon }}</mat-icon>
+        <span matListItemTitle class="nav-label">{{ item.label }}</span>
+        <div class="active-indicator" *ngIf="isActiveRoute(item.route)"></div>
+      </mat-list-item>
+    </mat-nav-list>
+  </nav>
+
+  <!-- Spacer -->
+  <div class="spacer"></div>
+
+  <!-- Footer Actions -->
+  <div class="sidebar-footer">
+    <mat-divider></mat-divider>
+    
+    <mat-nav-list>
+      <mat-list-item class="nav-item logout-item" (click)="logout()">
+        <mat-icon matListItemIcon class="logout-icon">logout</mat-icon>
+        <span matListItemTitle class="nav-label">Sair</span>
+      </mat-list-item>
+    </mat-nav-list>
+  </div>
+</div>

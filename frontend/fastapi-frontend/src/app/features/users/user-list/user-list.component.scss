@@ -1,0 +1,404 @@
+.user-list-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  
+  // Header Card
+  .header-card {
+    margin-bottom: 24px;
+    
+    mat-card-header {
+      margin-bottom: 16px;
+      
+      mat-card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 24px;
+        font-weight: 600;
+        color: #1976d2;
+        
+        mat-icon {
+          font-size: 28px;
+          width: 28px;
+          height: 28px;
+        }
+      }
+      
+      mat-card-subtitle {
+        font-size: 14px;
+        color: #666;
+        margin-top: 4px;
+      }
+    }
+    
+    // Search and Actions Bar
+    .search-actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      
+      .search-section {
+        flex: 1;
+        max-width: 400px;
+        
+        .search-field {
+          width: 100%;
+        }
+      }
+      
+      .actions-section {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        
+        button {
+          &[mat-raised-button] {
+            height: 40px;
+            
+            mat-icon {
+              margin-right: 8px;
+            }
+          }
+          
+          &[mat-icon-button] {
+            width: 40px;
+            height: 40px;
+          }
+        }
+      }
+    }
+  }
+  
+  // Table Card
+  .table-card {
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px;
+      
+      mat-spinner {
+        margin-bottom: 16px;
+      }
+      
+      p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+      }
+    }
+    
+    .table-container {
+      .users-table {
+        width: 100%;
+        
+        // Table Headers
+        th {
+          font-weight: 600;
+          color: #424242;
+          border-bottom: 2px solid #e0e0e0;
+        }
+        
+        // Table Cells
+        td {
+          border-bottom: 1px solid #f0f0f0;
+          
+          // User Info Cell
+          .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            
+            .user-avatar {
+              width: 32px;
+              height: 32px;
+              border-radius: 50%;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+              
+              .user-initials {
+                font-size: 12px;
+                font-weight: 600;
+                color: white;
+              }
+            }
+            
+            .username {
+              font-weight: 500;
+              color: #424242;
+            }
+          }
+          
+          // Email Cell
+          .email {
+            color: #666;
+            font-size: 14px;
+          }
+          
+          // Date Cell
+          .date {
+            color: #666;
+            font-size: 13px;
+          }
+          
+          // Actions Cell
+          .actions-cell {
+            display: flex;
+            gap: 4px;
+            
+            button {
+              width: 36px;
+              height: 36px;
+              
+              mat-icon {
+                font-size: 18px;
+                width: 18px;
+                height: 18px;
+              }
+            }
+          }
+        }
+        
+        // Table Rows
+        tr {
+          &:hover {
+            background-color: #f9f9f9;
+          }
+        }
+      }
+      
+      // No Data Message
+      .no-data {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px;
+        text-align: center;
+        
+        mat-icon {
+          font-size: 64px;
+          width: 64px;
+          height: 64px;
+          color: #ccc;
+          margin-bottom: 16px;
+        }
+        
+        h3 {
+          margin: 0 0 8px 0;
+          color: #666;
+          font-weight: 500;
+        }
+        
+        p {
+          margin: 0 0 24px 0;
+          color: #999;
+          font-size: 14px;
+          max-width: 400px;
+        }
+        
+        button {
+          mat-icon {
+            margin-right: 8px;
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+      
+      // Paginator
+      mat-paginator {
+        border-top: 1px solid #e0e0e0;
+        margin-top: 16px;
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .user-list-container {
+    padding: 16px;
+    
+    .header-card {
+      .search-actions-bar {
+        flex-direction: column;
+        align-items: stretch;
+        
+        .search-section {
+          max-width: none;
+          margin-bottom: 16px;
+        }
+        
+        .actions-section {
+          justify-content: center;
+        }
+      }
+    }
+    
+    .table-card {
+      .table-container {
+        .users-table {
+          // Hide less important columns on mobile
+          .mat-column-id,
+          .mat-column-created_at {
+            display: none;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .user-list-container {
+    padding: 8px;
+    
+    .header-card {
+      mat-card-header {
+        mat-card-title {
+          font-size: 20px;
+          
+          mat-icon {
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+          }
+        }
+      }
+      
+      .search-actions-bar {
+        .actions-section {
+          flex-direction: column;
+          gap: 8px;
+          
+          button[mat-raised-button] {
+            width: 100%;
+          }
+        }
+      }
+    }
+    
+    .table-card {
+      .table-container {
+        .users-table {
+          td {
+            .user-info {
+              .user-avatar {
+                width: 28px;
+                height: 28px;
+                
+                .user-initials {
+                  font-size: 11px;
+                }
+              }
+            }
+            
+            .actions-cell {
+              flex-direction: column;
+              gap: 2px;
+              
+              button {
+                width: 32px;
+                height: 32px;
+                
+                mat-icon {
+                  font-size: 16px;
+                  width: 16px;
+                  height: 16px;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Dark theme support
+@media (prefers-color-scheme: dark) {
+  .user-list-container {
+    .header-card {
+      mat-card-header {
+        mat-card-title {
+          color: #90caf9;
+        }
+        
+        mat-card-subtitle {
+          color: #bdbdbd;
+        }
+      }
+    }
+    
+    .table-card {
+      .table-container {
+        .users-table {
+          th {
+            color: #e0e0e0;
+            border-bottom-color: #424242;
+          }
+          
+          td {
+            border-bottom-color: #424242;
+            
+            .user-info {
+              .username {
+                color: #e0e0e0;
+              }
+            }
+            
+            .email,
+            .date {
+              color: #bdbdbd;
+            }
+          }
+          
+          tr {
+            &:hover {
+              background-color: #424242;
+            }
+          }
+        }
+        
+        .no-data {
+          mat-icon {
+            color: #757575;
+          }
+          
+          h3 {
+            color: #bdbdbd;
+          }
+          
+          p {
+            color: #757575;
+          }
+        }
+        
+        mat-paginator {
+          border-top-color: #424242;
+        }
+      }
+    }
+  }
+}
+
+// Success and Error Snackbar Styles
+::ng-deep {
+  .success-snackbar {
+    background-color: #4caf50 !important;
+    color: white !important;
+  }
+  
+  .error-snackbar {
+    background-color: #f44336 !important;
+    color: white !important;
+  }
+}
