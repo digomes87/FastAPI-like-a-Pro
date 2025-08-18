@@ -94,17 +94,18 @@
         <!-- Edit Mode -->
         <div *ngIf="isEditing" class="edit-mode">
           <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
-            <!-- Email Field -->
+            <!-- Email Field (Read-only) -->
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Email</mat-label>
               <input 
                 matInput 
                 type="email" 
-                formControlName="email" 
-                placeholder="Digite seu email"
-                [disabled]="isSaving">
+                [value]="user?.email" 
+                placeholder="Email não pode ser alterado"
+                readonly
+                disabled>
               <mat-icon matSuffix>email</mat-icon>
-              <mat-error *ngIf="getFieldError('email')">{{ getFieldError('email') }}</mat-error>
+              <mat-hint>O email não pode ser alterado pois é usado para login</mat-hint>
             </mat-form-field>
 
             <mat-divider class="form-divider"></mat-divider>
