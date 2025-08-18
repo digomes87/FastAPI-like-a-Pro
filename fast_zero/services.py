@@ -230,6 +230,112 @@ class UserService:
 
         return len(self.session.scalars(stmt).all())
 
+    def get_user_by_google_id(self, google_id: str) -> Optional[User]:
+        """Get user by Google ID.
+
+        Args:
+            google_id: Google OAuth user ID
+
+        Returns:
+            User instance or None if not found
+        """
+        stmt = select(User).where(User.google_id == google_id)
+        return self.session.execute(stmt).scalar_one_or_none()
+
+    def create_oauth_user(
+        self,
+        user_data: UserCreate,
+        google_id: str,
+        picture: str = '',
+        oauth_provider: str = 'google',
+        is_verified: bool = False,
+    ) -> User:
+        """Create a new OAuth user.
+
+        Args:
+            user_data: User creation data
+            google_id: Google OAuth user ID
+            picture: User profile picture URL
+            oauth_provider: OAuth provider name
+            is_verified: Whether email is verified
+
+        Returns:
+            Created user instance
+
+        Raises:
+            ValueError: If username or email already exists
+        """
+        # Check for existing username
+        existing_username = self.session.execute(
+            select(User).where(User.username == user_data.username)
+        ).scalar_one_or_none()
+
+        if existing_username:
+            raise ValueError('Username already exists')
+
+        # Check for existing email
+        existing_email = self.session.execute(
+            select(User).where(User.email == user_data.email)
+        ).scalar_one_or_none()
+
+        if existing_email:
+            raise ValueError('Email already exists')
+
+        # For OAuth users, password can be empty
+        hashed_password = (
+            get_password_hash(user_data.password)
+            if user_data.password
+            else None
+        )
+
+        user = User(
+            username=user_data.username,
+            email=user_data.email,
+            password=hashed_password,
+            first_name=user_data.first_name,
+            last_name=user_data.last_name,
+            bio=user_data.bio,
+            google_id=google_id,
+            picture=picture,
+            oauth_provider=oauth_provider,
+            is_verified=is_verified,
+            is_active=True,
+        )
+
+        self.session.add(user)
+        self.session.flush()
+        return user
+
+    def update_user_oauth_info(
+        self,
+        user_id: int,
+        google_id: str,
+        picture: str = '',
+        oauth_provider: str = 'google',
+    ) -> Optional[User]:
+        """Update user OAuth information.
+
+        Args:
+            user_id: User ID
+            google_id: Google OAuth user ID
+            picture: User profile picture URL
+            oauth_provider: OAuth provider name
+
+        Returns:
+            Updated user instance or None if not found
+        """
+        user = self.get_user_by_id(user_id)
+        if not user:
+            return None
+
+        user.google_id = google_id
+        user.picture = picture
+        user.oauth_provider = oauth_provider
+
+        self.session.flush()
+        self.session.refresh(user)
+        return user
+
 
 def get_user_service(session: Session) -> UserService:
     """Get user service instance.
