@@ -28,14 +28,17 @@
         <!-- Form Fields -->
         <div class="form-fields">
           <div class="form-field">
-            <label class="field-label">USERNAME</label>
+            <label class="field-label">EMAIL</label>
             <input class="field-input" 
-                   formControlName="username" 
-                   placeholder="Enter your username" 
-                   autocomplete="username"
-                   type="text">
-            <div class="field-error" *ngIf="loginForm.get('username')?.hasError('required')">
-              Username é obrigatório
+                   formControlName="email" 
+                   placeholder="Enter your email" 
+                   autocomplete="email"
+                   type="email">
+            <div class="field-error" *ngIf="loginForm.get('email')?.hasError('required')">
+              Email é obrigatório
+            </div>
+            <div class="field-error" *ngIf="loginForm.get('email')?.hasError('email')">
+              Email deve ter um formato válido
             </div>
           </div>
 

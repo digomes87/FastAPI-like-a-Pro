@@ -94,18 +94,6 @@
         <!-- Edit Mode -->
         <div *ngIf="isEditing" class="edit-mode">
           <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
-            <!-- Username Field -->
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Nome de usuário</mat-label>
-              <input 
-                matInput 
-                formControlName="username" 
-                placeholder="Digite seu nome de usuário"
-                [disabled]="isSaving">
-              <mat-icon matSuffix>person</mat-icon>
-              <mat-error *ngIf="getFieldError('username')">{{ getFieldError('username') }}</mat-error>
-            </mat-form-field>
-
             <!-- Email Field -->
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Email</mat-label>
