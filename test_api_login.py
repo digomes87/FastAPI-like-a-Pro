@@ -1,60 +1,59 @@
 #!/usr/bin/env python3
 """Script para testar login via API HTTP."""
 
-import requests
 import json
+import traceback
+
+import requests
+
 
 def test_api_login():
     """Testa login via API HTTP."""
-    url = "http://localhost:8000/auth/token"
-    username = "digomes"
-    password = "E@#$%^&12(),.?\":{}|<!a"
-    
-    print(f"Testando login via API:")
-    print(f"URL: {url}")
+    url = 'http://localhost:8000/auth/token'
+    username = 'digomes'
+    password = 'E@#$%^&12(),.?":{}|<!a'
+
+    print('Testando login via API:')
+    print(f'URL: {url}')
     print(f"Usuário: '{username}'")
     print(f"Senha: '{password}'")
-    print(f"Comprimento da senha: {len(password)} caracteres")
+    print(f'Comprimento da senha: {len(password)} caracteres')
     print()
-    
+
     # Dados do formulário
-    data = {
-        'username': username,
-        'password': password
-    }
-    
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded'
-    }
-    
+    data = {'username': username, 'password': password}
+
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+
     try:
-        print("Enviando requisição...")
+        print('Enviando requisição...')
         response = requests.post(url, data=data, headers=headers)
-        
-        print(f"Status Code: {response.status_code}")
-        print(f"Headers: {dict(response.headers)}")
-        
+
+        print(f'Status Code: {response.status_code}')
+        print(f'Headers: {dict(response.headers)}')
+
         try:
             response_json = response.json()
-            print(f"Response JSON: {json.dumps(response_json, indent=2)}")
-        except:
-            print(f"Response Text: {response.text}")
-            
+            print(f'Response JSON: {json.dumps(response_json, indent=2)}')
+        except Exception:
+            print(f'Response Text: {response.text}')
+
         if response.status_code == 200:
-            print("\n✅ LOGIN BEM-SUCEDIDO via API!")
+            print('\n✅ LOGIN BEM-SUCEDIDO via API!')
             if 'access_token' in response_json:
-                print(f"Token recebido: {response_json['access_token'][:50]}...")
+                token_preview = response_json['access_token'][:50]
+                print(f'Token recebido: {token_preview}...')
         else:
-            print(f"\n❌ FALHA NO LOGIN via API")
-            print(f"Código de erro: {response.status_code}")
-            
+            print('\n❌ FALHA NO LOGIN via API')
+            print(f'Código de erro: {response.status_code}')
+
     except requests.exceptions.ConnectionError:
-        print("❌ ERRO: Não foi possível conectar ao servidor")
-        print("Verifique se o backend está rodando na porta 8000")
+        print('❌ ERRO: Não foi possível conectar ao servidor')
+        print('Verifique se o backend está rodando na porta 8000')
     except Exception as e:
-        print(f"❌ ERRO inesperado: {e}")
-        import traceback
+        print(f'❌ ERRO inesperado: {e}')
         traceback.print_exc()
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     test_api_login()

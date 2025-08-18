@@ -89,7 +89,7 @@ class UserCreateOAuth(UserBase):
 
 class UserUpdate(BaseModel):
     """Schema for updating user information.
-    
+
     Note: Username is immutable and cannot be updated after registration.
     """
 

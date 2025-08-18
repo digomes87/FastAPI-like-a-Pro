@@ -12,7 +12,7 @@ services:
     environment:
       - ENVIRONMENT=development
       - DEBUG=true
-      - SECRET_KEY=dev-secret-key-not-for-production-use-only
+      - SECRET_KEY=${SECRET_KEY:-CHANGE_THIS_TO_A_SECURE_RANDOM_SECRET_KEY_MIN_32_CHARS}
     volumes:
       - .:/app  # Mount source code for hot-reload
       - /app/.venv  # Exclude virtual environment from mount

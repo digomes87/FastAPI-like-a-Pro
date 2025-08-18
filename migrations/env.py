@@ -19,9 +19,6 @@ settings = get_settings()
 database_url = settings.DATABASE_URL
 if database_url.startswith('postgresql+asyncpg'):
     database_url = database_url.replace('postgresql+asyncpg://', 'postgresql://')
-elif database_url.startswith('sqlite+aiosqlite'):
-    database_url = database_url.replace('sqlite+aiosqlite:///', 'sqlite:///')
-
 # Set the database URL from settings
 config.set_main_option('sqlalchemy.url', database_url)
 
