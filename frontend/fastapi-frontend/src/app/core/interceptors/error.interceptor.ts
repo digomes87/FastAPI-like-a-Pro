@@ -30,8 +30,13 @@ export class ErrorInterceptor implements HttpInterceptor {
               errorMessage = this.handleBadRequest(error);
               break;
             case 401:
-              errorMessage = 'Não autorizado. Faça login novamente.';
-              this.handleUnauthorized();
+              // Don't handle unauthorized for login endpoints
+              if (this.isLoginEndpoint(request.url)) {
+                errorMessage = 'Credenciais inválidas. Verifique seu usuário e senha.';
+              } else {
+                errorMessage = 'Não autorizado. Faça login novamente.';
+                this.handleUnauthorized();
+              }
               break;
             case 403:
               errorMessage = 'Acesso negado. Você não tem permissão para esta ação.';
@@ -138,5 +143,15 @@ export class ErrorInterceptor implements HttpInterceptor {
 
   private showErrorMessage(message: string): void {
     this.notificationService.showError(message);
+  }
+
+  private isLoginEndpoint(url: string): boolean {
+    const loginEndpoints = [
+      '/auth/login',
+      '/auth/token',
+      '/auth/register'
+    ];
+    
+    return loginEndpoints.some(endpoint => url.includes(endpoint));
   }
 }

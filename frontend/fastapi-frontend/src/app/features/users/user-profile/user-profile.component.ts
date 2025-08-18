@@ -41,7 +41,7 @@ import { ProfileImageComponent } from '../../../shared/components/profile-image/
   styleUrl: './user-profile.component.scss'
 })
 export class UserProfileComponent implements OnInit {
-  profileForm: FormGroup;
+  profileForm!: FormGroup;
   user: User | null = null;
   isLoading = false;
   isEditing = false;
@@ -58,8 +58,11 @@ export class UserProfileComponent implements OnInit {
     private router: Router,
     private snackBar: MatSnackBar
   ) {
+    this.initializeForm();
+  }
+
+  private initializeForm(): void {
     this.profileForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
       password: [''],
       confirmPassword: ['']
     });
@@ -126,7 +129,6 @@ export class UserProfileComponent implements OnInit {
   private populateForm(): void {
     if (this.user) {
       this.profileForm.patchValue({
-        email: this.user.email,
         password: '',
         confirmPassword: ''
       });
@@ -153,9 +155,7 @@ export class UserProfileComponent implements OnInit {
 
       this.isSaving = true;
       
-      const updateData: any = {
-        email: formData.email
-      };
+      const updateData: any = {};
       
       // Only include password if it's provided
       if (formData.password) {
