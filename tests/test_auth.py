@@ -74,7 +74,9 @@ class TestJWTTokens:
 class TestUserAuthentication:
     """Test user authentication."""
 
-    def test_authenticate_user_success(self, session: Session, sync_user: User):
+    def test_authenticate_user_success(
+        self, session: Session, sync_user: User
+    ):
         """Test successful user authentication."""
         # User fixture should have hashed password
         authenticated_user = authenticate_user(
@@ -94,7 +96,9 @@ class TestUserAuthentication:
         self, session: Session, sync_user: User
     ):
         """Test authentication with wrong password."""
-        result = authenticate_user(session, sync_user.username, 'wrongpassword')
+        result = authenticate_user(
+            session, sync_user.username, 'wrongpassword'
+        )
         assert result is False
 
 

@@ -1,3 +1,4 @@
+import asyncio
 from datetime import timedelta
 from http import HTTPStatus
 from math import ceil
@@ -169,12 +170,13 @@ def google_callback(
     try:
         # Note: This is a simplified sync version
         # In production, you might want to use async version
-        import asyncio
-        
+
         # Get user info from Google (using async in sync context)
-        user_info = asyncio.run(google_oauth.get_user_info(
-            code=code, redirect_uri=settings.GOOGLE_REDIRECT_URI
-        ))
+        user_info = asyncio.run(
+            google_oauth.get_user_info(
+                code=code, redirect_uri=settings.GOOGLE_REDIRECT_URI
+            )
+        )
 
         # Validate user info
         validated_user_info = google_oauth.validate_user_info(user_info)
@@ -189,9 +191,7 @@ def google_callback(
 
         if not user:
             # Try to find by email
-            user = user_service.get_user_by_email(
-                validated_user_info['email']
-            )
+            user = user_service.get_user_by_email(validated_user_info['email'])
 
             if user:
                 # Update existing user with Google info
