@@ -70,29 +70,14 @@ export class RegisterComponent implements OnInit {
 
     const errors: any = {};
     
-    // Check for uppercase letter
-    if (!/[A-Z]/.test(password)) {
-      errors.missingUppercase = true;
+    // Check minimum length (already handled by Validators.minLength(8))
+    if (password.length < 8) {
+      errors.minLength = true;
     }
     
-    // Check for lowercase letter
-    if (!/[a-z]/.test(password)) {
-      errors.missingLowercase = true;
-    }
-    
-    // Check for digit
-    if (!/\d/.test(password)) {
-      errors.missingDigit = true;
-    }
-    
-    // Check for special character
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      errors.missingSpecialChar = true;
-    }
-    
-    // Check for sequential characters
-    if (/123|234|345|456|567|678|789|890|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz/i.test(password)) {
-      errors.hasSequentialChars = true;
+    // Check for at least one letter and one number (simplified requirement)
+    if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(password)) {
+      errors.pattern = true;
     }
     
     return Object.keys(errors).length > 0 ? errors : null;
