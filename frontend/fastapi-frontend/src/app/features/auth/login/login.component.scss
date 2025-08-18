@@ -115,16 +115,16 @@
     .mat-mdc-input-element {
       padding: 16px 14px;
       font-size: 16px;
-      color: #333 !important;
-      background-color: transparent !important;
+      color: #666 !important;
+      background-color: #f5f5f5 !important;
     }
     
     .mat-mdc-input-element::placeholder {
-      color: rgba(0, 0, 0, 0.6) !important;
+      color: rgba(102, 102, 102, 0.7) !important;
     }
     
     .mat-mdc-input-element:focus {
-      color: #333 !important;
+      color: #555 !important;
     }
     
     .mat-mdc-form-field-label {
