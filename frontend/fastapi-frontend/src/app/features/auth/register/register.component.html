@@ -37,9 +37,6 @@
             <div class="field-error" *ngIf="registerForm.get('username')?.hasError('required')">
               Username é obrigatório
             </div>
-            <div class="field-error" *ngIf="registerForm.get('username')?.hasError('minlength')">
-              Username deve ter pelo menos 3 caracteres
-            </div>
           </div>
 
           <div class="form-field">
@@ -73,21 +70,6 @@
             </div>
             <div class="field-error" *ngIf="registerForm.get('password')?.hasError('required')">
               Senha é obrigatória
-            </div>
-            <div class="field-error" *ngIf="registerForm.get('password')?.hasError('minlength')">
-              Senha deve ter pelo menos 8 caracteres
-            </div>
-            <div class="field-error" *ngIf="registerForm.get('password')?.hasError('missingUppercase')">
-              Senha deve conter pelo menos uma letra maiúscula
-            </div>
-            <div class="field-error" *ngIf="registerForm.get('password')?.hasError('missingLowercase')">
-              Senha deve conter pelo menos uma letra minúscula
-            </div>
-            <div class="field-error" *ngIf="registerForm.get('password')?.hasError('missingDigit')">
-              Senha deve conter pelo menos um número
-            </div>
-            <div class="field-error" *ngIf="registerForm.get('password')?.hasError('missingSpecialChar')">
-              Senha deve conter pelo menos um caractere especial
             </div>
           </div>
 
