@@ -1,0 +1,123 @@
+<div class="register-container">
+  <div class="register-wrapper">
+    <!-- Brand Section -->
+    <div class="brand-section">
+      <div class="brand-logo">
+        <mat-icon class="logo-icon">person_add</mat-icon>
+      </div>
+      <h1 class="brand-title">FastAPI Zero</h1>
+      <p class="brand-subtitle">Cadastre-se para começar</p>
+    </div>
+
+    <!-- Register Form Card -->
+    <mat-card class="register-card">
+      <mat-card-content class="card-content">
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+          <!-- Form Fields -->
+          <div class="form-fields">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Nome de Usuário</mat-label>
+              <input matInput formControlName="username" placeholder="Digite seu nome de usuário" autocomplete="username">
+              <mat-icon matSuffix class="field-icon">person</mat-icon>
+              <mat-error *ngIf="registerForm.get('username')?.hasError('required')">
+                Nome de usuário é obrigatório
+              </mat-error>
+              <mat-error *ngIf="registerForm.get('username')?.hasError('minlength')">
+                Nome de usuário deve ter pelo menos 3 caracteres
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" formControlName="email" placeholder="Digite seu email" autocomplete="email">
+              <mat-icon matSuffix class="field-icon">email</mat-icon>
+              <mat-error *ngIf="registerForm.get('email')?.hasError('required')">
+                Email é obrigatório
+              </mat-error>
+              <mat-error *ngIf="registerForm.get('email')?.hasError('email')">
+                Digite um email válido
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Senha</mat-label>
+              <input matInput 
+                     [type]="hidePassword ? 'password' : 'text'" 
+                     formControlName="password" 
+                     placeholder="Digite sua senha"
+                     autocomplete="new-password">
+              <mat-hint>A senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula, número e caractere especial</mat-hint>
+              <button mat-icon-button matSuffix 
+                      (click)="togglePasswordVisibility()" 
+                      type="button"
+                      class="password-toggle"
+                      [attr.aria-label]="hidePassword ? 'Mostrar senha' : 'Ocultar senha'" 
+                      [attr.aria-pressed]="!hidePassword">
+                <mat-icon class="field-icon">{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
+              <mat-error *ngIf="registerForm.get('password')?.hasError('required')">
+                Senha é obrigatória
+              </mat-error>
+              <mat-error *ngIf="registerForm.get('password')?.hasError('minlength')">
+                Senha deve ter pelo menos 8 caracteres
+              </mat-error>
+              <mat-error *ngIf="registerForm.get('password')?.hasError('missingUppercase')">
+                Senha deve conter pelo menos uma letra maiúscula
+              </mat-error>
+              <mat-error *ngIf="registerForm.get('password')?.hasError('missingLowercase')">
+                Senha deve conter pelo menos uma letra minúscula
+              </mat-error>
+              <mat-error *ngIf="registerForm.get('password')?.hasError('missingDigit')">
+                Senha deve conter pelo menos um número
+              </mat-error>
+              <mat-error *ngIf="registerForm.get('password')?.hasError('missingSpecialChar')">
+                Senha deve conter pelo menos um caractere especial (!&#64;#$%^&amp;*(),.?&quot;:&#123;&#125;|&lt;&gt;)
+              </mat-error>
+              <mat-error *ngIf="registerForm.get('password')?.hasError('hasSequentialChars')">
+                Senha não pode conter caracteres sequenciais (ex: 123, abc)
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Confirmar Senha</mat-label>
+              <input matInput 
+                     [type]="hideConfirmPassword ? 'password' : 'text'" 
+                     formControlName="confirmPassword" 
+                     placeholder="Confirme sua senha"
+                     autocomplete="new-password">
+              <button mat-icon-button matSuffix 
+                      (click)="toggleConfirmPasswordVisibility()" 
+                      type="button"
+                      class="password-toggle"
+                      [attr.aria-label]="hideConfirmPassword ? 'Mostrar confirmação de senha' : 'Ocultar confirmação de senha'" 
+                      [attr.aria-pressed]="!hideConfirmPassword">
+                <mat-icon class="field-icon">{{hideConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
+              <mat-error *ngIf="registerForm.get('confirmPassword')?.hasError('required')">
+                Confirmação de senha é obrigatória
+              </mat-error>
+              <mat-error *ngIf="registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched">
+                As senhas não coincidem
+              </mat-error>
+            </mat-form-field>
+
+            <button type="submit" 
+                    class="register-button"
+                    [disabled]="!registerForm.valid || isLoading">
+              <mat-spinner *ngIf="isLoading" diameter="20" class="spinner"></mat-spinner>
+              <span *ngIf="!isLoading">Criar Conta</span>
+              <span *ngIf="isLoading">Criando...</span>
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+
+      <!-- Login Section -->
+      <div class="login-section">
+        <p class="login-text">Já tem uma conta?</p>
+        <button type="button" class="login-button" (click)="goToLogin()">
+          Entrar
+        </button>
+      </div>
+  </mat-card>
+</div>

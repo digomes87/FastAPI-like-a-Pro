@@ -1,0 +1,99 @@
+<div class="login-container">
+  <div class="login-wrapper">
+    <!-- Brand Section -->
+    <div class="brand-section">
+      <div class="brand-logo">
+        <mat-icon class="logo-icon">account_circle</mat-icon>
+      </div>
+      <h1 class="brand-title">FastAPI Zero</h1>
+      <p class="brand-subtitle">Entre na sua conta para continuar</p>
+    </div>
+
+    <!-- Login Form Card -->
+    <mat-card class="login-card">
+      <mat-card-content class="card-content">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+          <!-- Form Fields -->
+          <div class="form-fields">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Email ou usuário</mat-label>
+              <input matInput 
+                     formControlName="username" 
+                     placeholder="Digite seu email ou usuário" 
+                     autocomplete="username"
+                     type="email">
+              <mat-icon matSuffix class="field-icon">person</mat-icon>
+              <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
+                Email ou usuário é obrigatório
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Senha</mat-label>
+              <input matInput 
+                     [type]="hidePassword ? 'password' : 'text'" 
+                     formControlName="password" 
+                     placeholder="Digite sua senha"
+                     autocomplete="current-password">
+              <button mat-icon-button 
+                      matSuffix 
+                      (click)="togglePasswordVisibility()" 
+                      type="button"
+                      class="password-toggle"
+                      [attr.aria-label]="hidePassword ? 'Mostrar senha' : 'Ocultar senha'" 
+                      [attr.aria-pressed]="!hidePassword">
+                <mat-icon class="field-icon">{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
+              <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+                Senha é obrigatória
+              </mat-error>
+              <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">
+                Senha deve ter pelo menos 6 caracteres
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Forgot Password Link -->
+          <div class="forgot-password">
+            <button mat-button 
+                    type="button" 
+                    class="forgot-link"
+                    (click)="goToForgotPassword()">
+              Esqueceu sua senha?
+            </button>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" 
+                  class="login-button"
+                  [disabled]="!loginForm.valid || isLoading">
+            <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
+            <span class="button-text">{{isLoading ? 'Entrando...' : 'Entrar na conta'}}</span>
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="divider">
+          <span class="divider-text">ou</span>
+        </div>
+
+        <!-- Google Login Button - Temporariamente desabilitado -->
+        <!-- <button type="button" 
+                class="google-login-button"
+                (click)="loginWithGoogle()"
+                [disabled]="isLoading">
+          <mat-icon class="google-icon">account_circle</mat-icon>
+          <span class="button-text">Entrar com Google</span>
+        </button> -->
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Register Section -->
+    <div class="register-section">
+      <p class="register-text">Não tem uma conta?</p>
+      <button type="button" class="register-button" (click)="goToRegister()">
+        Criar conta gratuita
+      </button>
+    </div>
+  </div>
+</div>

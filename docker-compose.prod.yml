@@ -1,0 +1,88 @@
+# Docker Compose configuration for production environment
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+version: '3.8'
+
+services:
+  # FastAPI Application - Production configuration
+  app:
+    build:
+      target: production
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - SECRET_KEY=${SECRET_KEY}  # Must be provided via environment
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://yourdomain.com}
+    # Remove port mapping for production (use reverse proxy)
+    ports: []
+    expose:
+      - "8000"
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    command: >
+      sh -c "poetry run alembic upgrade head &&
+             poetry run uvicorn fast_zero.async_app:app --host 0.0.0.0 --port 8000 --workers 2"
+
+  # PostgreSQL - Production configuration
+  postgres:
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}  # Must be provided via environment
+      - POSTGRES_HOST_AUTH_METHOD=md5  # Secure authentication
+    # Remove port mapping for production
+    ports: []
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Remove pgAdmin in production
+  pgadmin:
+    deploy:
+      replicas: 0
+
+  # Nginx reverse proxy for production
+  nginx:
+    image: nginx:alpine
+    container_name: fast_zero_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - fast_zero_network
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
