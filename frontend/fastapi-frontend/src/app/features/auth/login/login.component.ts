@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AuthService } from '../../../core/services/auth.service';
 import { LoginRequest } from '../../../core/models/auth';
 
@@ -24,7 +25,8 @@ import { LoginRequest } from '../../../core/models/auth';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatCheckboxModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
@@ -34,6 +36,15 @@ export class LoginComponent implements OnInit {
   isLoading = false;
   hidePassword = true;
   returnUrl = '/';
+  backgroundImages = [
+    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+    'https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+    'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+    'https://images.unsplash.com/photo-1518837695005-2083093ee35b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+  ];
+  currentBackgroundImage = '';
 
   constructor(
     private fb: FormBuilder,
@@ -46,6 +57,13 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+    this.setRandomBackgroundImage();
+  }
+
+  setRandomBackgroundImage(): void {
+    const randomIndex = Math.floor(Math.random() * this.backgroundImages.length);
+    this.currentBackgroundImage = this.backgroundImages[randomIndex];
+    console.log('Background image set to:', this.currentBackgroundImage);
   }
 
   private initializeForm(): void {
