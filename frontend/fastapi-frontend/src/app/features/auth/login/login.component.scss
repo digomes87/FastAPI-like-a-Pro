@@ -4,7 +4,7 @@
   align-items: center;
   min-height: 100vh;
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
   position: relative;
   
   &::before {
@@ -48,7 +48,7 @@
   .brand-title {
     font-size: 32px;
     font-weight: 700;
-    color: rgb(174, 170, 170);
+    color: rgba(255, 255, 255, 0.95);
     margin: 0 0 8px 0;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     letter-spacing: -0.5px;
@@ -67,7 +67,7 @@
   padding: 0;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1);
   border-radius: 20px;
-  background: rgba(200, 200, 200, 0.98);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   overflow: hidden;
@@ -154,14 +154,14 @@
     font-size: 14px;
     font-weight: 500;
     text-transform: none;
-    color: #667eea;
+    color: #4f46e5;
     padding: 4px 8px;
     border-radius: 6px;
     transition: all 0.2s ease;
     
     &:hover {
-      background-color: rgba(102, 126, 234, 0.08);
-      color: #5a67d8;
+      background-color: rgba(79, 70, 229, 0.08);
+      color: #4338ca;
     }
   }
 }
@@ -177,16 +177,16 @@
   font-weight: 600;
   border-radius: 12px;
   position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
   border: none;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
   transition: all 0.3s ease;
   text-transform: none;
   letter-spacing: 0.5px;
   
   &:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
   }
   
   &:disabled {
@@ -218,7 +218,7 @@
   }
 
   .register-button {
-    background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
     color: white;
     border: none;
     padding: 0.75rem 2rem;
@@ -227,18 +227,18 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(79, 195, 247, 0.3);
+    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
     text-transform: none;
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(79, 195, 247, 0.4);
-      background: linear-gradient(135deg, #29b6f6 0%, #1e88e5 100%);
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+      background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
     }
 
     &:active {
       transform: translateY(0);
-      box-shadow: 0 2px 10px rgba(79, 195, 247, 0.3);
+      box-shadow: 0 2px 10px rgba(6, 182, 212, 0.3);
     }
   }
 }
