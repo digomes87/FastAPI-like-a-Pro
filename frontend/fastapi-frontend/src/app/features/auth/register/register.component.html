@@ -1,0 +1,115 @@
+<div class="register-container">
+  <!-- Left Illustration Section -->
+  <div class="illustration-section" [style.background-image]="'url(' + currentBackgroundImage + ')'">
+    <div class="illustration-overlay"></div>
+    <div class="illustration-content">
+      <div class="brand-logo">
+        <mat-icon class="logo-icon">person_add</mat-icon>
+      </div>
+      <h1 class="illustration-title">Junte-se à nossa comunidade</h1>
+      <p class="illustration-subtitle">Crie sua conta e comece sua jornada</p>
+    </div>
+  </div>
+
+  <!-- Right Register Section -->
+  <div class="register-section">
+    <div class="register-wrapper">
+      <!-- Header -->
+      <div class="register-header">
+        <div class="auth-tabs">
+          <button class="tab-button" (click)="goToLogin()">Sign In</button>
+          <span class="tab-separator">or</span>
+          <button class="tab-button active">Sign Up</button>
+        </div>
+      </div>
+
+      <!-- Register Form -->
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+        <!-- Form Fields -->
+        <div class="form-fields">
+          <div class="form-field">
+            <label class="field-label">USERNAME</label>
+            <input class="field-input" 
+                   formControlName="username" 
+                   placeholder="Enter your username" 
+                   autocomplete="username"
+                   type="text">
+            <div class="field-error" *ngIf="registerForm.get('username')?.hasError('required')">
+              Username é obrigatório
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label class="field-label">EMAIL</label>
+            <input class="field-input" 
+                   type="email"
+                   formControlName="email" 
+                   placeholder="Enter your email" 
+                   autocomplete="email">
+            <div class="field-error" *ngIf="registerForm.get('email')?.hasError('required')">
+              Email é obrigatório
+            </div>
+            <div class="field-error" *ngIf="registerForm.get('email')?.hasError('email')">
+              Digite um email válido
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label class="field-label">PASSWORD</label>
+            <div class="password-field">
+              <input class="field-input" 
+                     [type]="hidePassword ? 'password' : 'text'" 
+                     formControlName="password" 
+                     placeholder="Enter your password"
+                     autocomplete="new-password">
+              <button type="button" 
+                      class="password-toggle"
+                      (click)="togglePasswordVisibility()">
+                <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
+            </div>
+            <div class="field-error" *ngIf="registerForm.get('password')?.hasError('required')">
+              Senha é obrigatória
+            </div>
+            <div class="field-error" *ngIf="registerForm.get('password')?.hasError('minlength')">
+              Senha deve ter pelo menos 8 caracteres
+            </div>
+            <div class="field-error" *ngIf="registerForm.get('password')?.hasError('pattern')">
+              Senha deve conter pelo menos uma letra e um número
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label class="field-label">CONFIRM PASSWORD</label>
+            <div class="password-field">
+              <input class="field-input" 
+                     [type]="hideConfirmPassword ? 'password' : 'text'" 
+                     formControlName="confirmPassword" 
+                     placeholder="Confirm your password"
+                     autocomplete="new-password">
+              <button type="button" 
+                      class="password-toggle"
+                      (click)="toggleConfirmPasswordVisibility()">
+                <mat-icon>{{hideConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
+            </div>
+            <div class="field-error" *ngIf="registerForm.get('confirmPassword')?.hasError('required')">
+              Confirmação de senha é obrigatória
+            </div>
+            <div class="field-error" *ngIf="registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched">
+              As senhas não coincidem
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" 
+                class="submit-button"
+                [disabled]="!registerForm.valid || isLoading">
+          <mat-spinner *ngIf="isLoading" diameter="16" class="button-spinner"></mat-spinner>
+          <span>{{isLoading ? 'Creating Account...' : 'Sign Up'}}</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

@@ -62,22 +62,40 @@ def get_current_user(
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
-        username: str = payload.get('sub')
-        if username is None:
+        email: str = payload.get('sub')
+        if email is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
 
-    user = session.query(User).filter(User.username == username).first()
+    user = session.query(User).filter(User.email == email).first()
     if user is None:
         raise credentials_exception
 
     return user
 
 
-def authenticate_user(session: Session, username: str, password: str):
-    """Autentica um usuário verificando username e senha."""
-    user = session.query(User).filter(User.username == username).first()
+def authenticate_user(session: Session, username_or_email: str, password: str):
+    """Autentica um usuário verificando username/email e senha.
+
+    Args:
+        session: Sessão do banco de dados
+        username_or_email: Username ou email do usuário
+        password: Senha em texto plano
+
+    Returns:
+        User object se autenticado com sucesso, False caso contrário
+    """
+    # Tenta encontrar o usuário por username ou email
+    user = (
+        session.query(User)
+        .filter(
+            (User.username == username_or_email)
+            | (User.email == username_or_email)
+        )
+        .first()
+    )
+
     if not user:
         return False
     if not verify_password(password, user.password):

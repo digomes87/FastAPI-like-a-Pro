@@ -88,17 +88,11 @@ class UserCreateOAuth(UserBase):
 
 
 class UserUpdate(BaseModel):
-    """Schema for updating user information."""
+    """Schema for updating user information.
 
-    username: Optional[str] = Field(
-        default=None,
-        min_length=3,
-        max_length=50,
-        pattern=r'^[a-zA-Z0-9_-]+$',
-        description=(
-            'Username (3-50 chars, alphanumeric, underscore, hyphen only)'
-        ),
-    )
+    Note: Username is immutable and cannot be updated after registration.
+    """
+
     email: Optional[EmailStr] = Field(
         default=None, description='Valid email address'
     )

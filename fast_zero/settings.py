@@ -19,7 +19,6 @@ class Settings(BaseSettings):
     DATABASE_URL: str = Field(
         description='Database connection URL',
         examples=[
-            'sqlite:///./database.db',
             'postgresql://user:pass@localhost/db',
         ],
     )
@@ -157,7 +156,7 @@ class Settings(BaseSettings):
 
     # Testing Configuration
     TEST_DATABASE_URL: str = Field(
-        default='sqlite:///./test_database.db',
+        default='postgresql+asyncpg://test_user:test_pass@localhost:5432/test_db',
         description='Test database connection URL',
     )
 

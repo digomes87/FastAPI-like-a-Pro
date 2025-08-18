@@ -1,0 +1,207 @@
+<div class="profile-container">
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Carregando perfil...</p>
+  </div>
+
+  <!-- Profile Content -->
+  <div *ngIf="!isLoading && user" class="profile-content">
+    <!-- Header -->
+    <div class="profile-header">
+      <button mat-icon-button (click)="goBack()" class="back-button" matTooltip="Voltar">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>{{ isCurrentUser ? 'Meu Perfil' : 'Perfil do Usuário' }}</h1>
+      <div class="header-actions" *ngIf="isCurrentUser">
+        <button 
+          mat-raised-button 
+          color="primary" 
+          (click)="toggleEdit()" 
+          [disabled]="isSaving"
+          class="edit-button">
+          <mat-icon>{{ isEditing ? 'cancel' : 'edit' }}</mat-icon>
+          {{ isEditing ? 'Cancelar' : 'Editar' }}
+        </button>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Profile Card -->
+    <mat-card class="profile-card">
+      <mat-card-header>
+        <div class="profile-image-container">
+          <app-profile-image 
+            size="large" 
+            [showSelector]="isCurrentUser"
+            [altText]="'Foto de perfil de ' + user.username"
+            (imageChanged)="onProfileImageChanged($event)">
+          </app-profile-image>
+        </div>
+        <div class="user-info-header">
+          <mat-card-title>{{ user.username }}</mat-card-title>
+          <mat-card-subtitle>{{ user.email }}</mat-card-subtitle>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content>
+        <!-- View Mode -->
+        <div *ngIf="!isEditing" class="view-mode">
+          <div class="user-info">
+            <div class="info-item">
+              <mat-icon>person</mat-icon>
+              <div class="info-content">
+                <span class="label">Nome de usuário:</span>
+                <span class="value">{{ user.username }}</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <mat-icon>email</mat-icon>
+              <div class="info-content">
+                <span class="label">Email:</span>
+                <span class="value">{{ user.email }}</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <mat-icon>schedule</mat-icon>
+              <div class="info-content">
+                <span class="label">Membro desde:</span>
+                <span class="value">{{ formatDate(user.created_at) }}</span>
+              </div>
+            </div>
+
+            <div class="info-item" *ngIf="user.updated_at !== user.created_at">
+              <mat-icon>update</mat-icon>
+              <div class="info-content">
+                <span class="label">Última atualização:</span>
+                <span class="value">{{ formatDate(user.updated_at) }}</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <mat-icon>fingerprint</mat-icon>
+              <div class="info-content">
+                <span class="label">ID do usuário:</span>
+                <span class="value">#{{ user.id }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Mode -->
+        <div *ngIf="isEditing" class="edit-mode">
+          <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+            <!-- Email Field (Read-only) -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email</mat-label>
+              <input 
+                matInput 
+                type="email" 
+                [value]="user?.email" 
+                placeholder="Email não pode ser alterado"
+                readonly
+                disabled>
+              <mat-icon matSuffix>email</mat-icon>
+              <mat-hint>O email não pode ser alterado pois é usado para login</mat-hint>
+            </mat-form-field>
+
+            <mat-divider class="form-divider"></mat-divider>
+
+            <div class="password-section">
+              <h3>Alterar Senha (Opcional)</h3>
+              <p class="password-hint">Deixe em branco para manter a senha atual</p>
+
+              <!-- Password Field -->
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nova senha</mat-label>
+                <input 
+                  matInput 
+                  type="password" 
+                  formControlName="password" 
+                  placeholder="Digite uma nova senha"
+                  [disabled]="isSaving">
+                <mat-icon matSuffix>lock</mat-icon>
+                <mat-error *ngIf="getFieldError('password')">{{ getFieldError('password') }}</mat-error>
+              </mat-form-field>
+
+              <!-- Confirm Password Field -->
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Confirmar nova senha</mat-label>
+                <input 
+                  matInput 
+                  type="password" 
+                  formControlName="confirmPassword" 
+                  placeholder="Confirme a nova senha"
+                  [disabled]="isSaving">
+                <mat-icon matSuffix>lock_outline</mat-icon>
+                <mat-error *ngIf="getFieldError('confirmPassword')">{{ getFieldError('confirmPassword') }}</mat-error>
+              </mat-form-field>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+              <button 
+                type="button" 
+                mat-stroked-button 
+                (click)="toggleEdit()" 
+                [disabled]="isSaving"
+                class="cancel-button">
+                <mat-icon>cancel</mat-icon>
+                Cancelar
+              </button>
+              
+              <button 
+                type="submit" 
+                mat-raised-button 
+                color="primary" 
+                [disabled]="profileForm.invalid || isSaving"
+                class="save-button">
+                <mat-spinner *ngIf="isSaving" diameter="20" class="button-spinner"></mat-spinner>
+                <mat-icon *ngIf="!isSaving">save</mat-icon>
+                {{ isSaving ? 'Salvando...' : 'Salvar Alterações' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Additional Info Card -->
+    <mat-card class="info-card" *ngIf="!isEditing">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>info</mat-icon>
+          Informações da Conta
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="account-stats">
+          <mat-chip-set>
+            <mat-chip color="primary" selected>
+              <mat-icon matChipAvatar>verified_user</mat-icon>
+              Conta Ativa
+            </mat-chip>
+            <mat-chip *ngIf="isCurrentUser">
+              <mat-icon matChipAvatar>person</mat-icon>
+              Você
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading && !user" class="error-state">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <h2>Usuário não encontrado</h2>
+    <p>O perfil solicitado não pôde ser carregado.</p>
+    <button mat-raised-button color="primary" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Voltar
+    </button>
+  </div>
+</div>

@@ -74,16 +74,18 @@ class TestJWTTokens:
 class TestUserAuthentication:
     """Test user authentication."""
 
-    def test_authenticate_user_success(self, session: Session, user: User):
+    def test_authenticate_user_success(
+        self, session: Session, sync_user: User
+    ):
         """Test successful user authentication."""
         # User fixture should have hashed password
         authenticated_user = authenticate_user(
-            session, user.username, 'testpass123'
+            session, sync_user.username, 'testpass123'
         )
 
         assert authenticated_user is not False
-        assert authenticated_user.username == user.username
-        assert authenticated_user.email == user.email
+        assert authenticated_user.username == sync_user.username
+        assert authenticated_user.email == sync_user.email
 
     def test_authenticate_user_wrong_username(self, session: Session):
         """Test authentication with wrong username."""
@@ -91,21 +93,23 @@ class TestUserAuthentication:
         assert result is False
 
     def test_authenticate_user_wrong_password(
-        self, session: Session, user: User
+        self, session: Session, sync_user: User
     ):
         """Test authentication with wrong password."""
-        result = authenticate_user(session, user.username, 'wrongpassword')
+        result = authenticate_user(
+            session, sync_user.username, 'wrongpassword'
+        )
         assert result is False
 
 
 class TestAuthEndpoints:
     """Test authentication endpoints."""
 
-    def test_login_success(self, client: TestClient, user: User):
+    def test_login_success(self, client: TestClient, sync_user: User):
         """Test successful login."""
         response = client.post(
             '/auth/token',
-            data={'username': user.username, 'password': 'testpass123'},
+            data={'username': sync_user.username, 'password': 'testpass123'},
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -119,7 +123,7 @@ class TestAuthEndpoints:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
-        assert payload['sub'] == user.username
+        assert payload['sub'] == sync_user.email
 
     def test_login_wrong_username(self, client: TestClient):
         """Test login with wrong username."""
@@ -131,11 +135,11 @@ class TestAuthEndpoints:
         assert response.status_code == HTTPStatus.UNAUTHORIZED
         assert 'Incorrect username or password' in response.json()['detail']
 
-    def test_login_wrong_password(self, client: TestClient, user: User):
+    def test_login_wrong_password(self, client: TestClient, sync_user: User):
         """Test login with wrong password."""
         response = client.post(
             '/auth/token',
-            data={'username': user.username, 'password': 'wrongpassword'},
+            data={'username': sync_user.username, 'password': 'wrongpassword'},
         )
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED

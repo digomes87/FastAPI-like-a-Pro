@@ -1,0 +1,45 @@
+# Docker Compose override for development environment
+# This file is automatically loaded by docker-compose and overrides settings in docker-compose.yml
+# Use this for local development with hot-reload and debugging capabilities
+
+version: '3.8'
+
+services:
+  # FastAPI Application - Development overrides
+  app:
+    build:
+      target: builder  # Use builder stage for development
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - SECRET_KEY=${SECRET_KEY:-CHANGE_THIS_TO_A_SECURE_RANDOM_SECRET_KEY_MIN_32_CHARS}
+    volumes:
+      - .:/app  # Mount source code for hot-reload
+      - /app/.venv  # Exclude virtual environment from mount
+    command: >
+      sh -c "poetry run alembic upgrade head &&
+             poetry run uvicorn fast_zero.async_app:app --host 0.0.0.0 --port 8000 --reload --log-level debug"
+    ports:
+      - "8000:8000"
+    # Override healthcheck for faster development feedback
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 10s
+
+  # PostgreSQL - Development overrides
+  postgres:
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust  # Simplified auth for development
+    ports:
+      - "5432:5432"  # Expose port for external connections
+
+  # pgAdmin - Development overrides
+  pgadmin:
+    environment:
+      - PGADMIN_CONFIG_SERVER_MODE=False
+      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+    ports:
+      - "5050:80"

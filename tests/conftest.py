@@ -16,12 +16,12 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import Mapper, Session, sessionmaker
-from sqlalchemy.pool import StaticPool
 
 # Local Imports
-from fast_zero.async_app import app
-from fast_zero.async_auth import create_access_token, get_password_hash
-from fast_zero.database import get_async_session
+from fast_zero.app import app as sync_app
+from fast_zero.async_app import app as async_app
+from fast_zero.auth import create_access_token, get_password_hash
+from fast_zero.database import get_async_session, get_session
 from fast_zero.models import User, table_registry
 from fast_zero.settings import get_settings
 
@@ -31,17 +31,27 @@ settings = get_settings()
 @pytest.fixture
 def session() -> Generator[Session, None, None]:
     """Create a test database session."""
+    # Use psycopg2 for sync testing with PostgreSQL
+    sync_database_url = settings.TEST_DATABASE_URL
+    if sync_database_url.startswith('postgresql+asyncpg://'):
+        sync_database_url = sync_database_url.replace(
+            'postgresql+asyncpg://', 'postgresql://'
+        )
+
     engine = create_engine(
-        settings.TEST_DATABASE_URL,
-        poolclass=StaticPool,
+        sync_database_url,
+        echo=False,
     )
 
-    # Create tables
+    # Create tables once
     table_registry.metadata.create_all(engine)
 
-    # Create session
+    # Create session with transaction
+    connection = engine.connect()
+    transaction = connection.begin()
+
     TestingSessionLocal = sessionmaker(
-        autocommit=False, autoflush=False, bind=engine
+        autocommit=False, autoflush=False, bind=connection
     )
 
     session = TestingSessionLocal()
@@ -50,21 +60,22 @@ def session() -> Generator[Session, None, None]:
         yield session
     finally:
         session.close()
-        # Drop tables
-        table_registry.metadata.drop_all(engine)
+        transaction.rollback()
+        connection.close()
 
 
 @pytest_asyncio.fixture
 async def async_session() -> AsyncGenerator[AsyncSession, None]:
     """Create a test async database session."""
-    # Use aiosqlite for async testing with SQLite
-    test_db_url = settings.TEST_DATABASE_URL.replace(
-        'sqlite:///', 'sqlite+aiosqlite:///'
-    )
+    # Use asyncpg for async testing with PostgreSQL
+    async_database_url = settings.TEST_DATABASE_URL
+    if async_database_url.startswith('postgresql://'):
+        async_database_url = async_database_url.replace(
+            'postgresql://', 'postgresql+asyncpg://'
+        )
     engine = create_async_engine(
-        test_db_url,
-        poolclass=StaticPool,
-        connect_args={'check_same_thread': False},
+        async_database_url,
+        echo=False,
     )
 
     # Create tables
@@ -90,17 +101,35 @@ async def async_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture
-def client(async_session: AsyncSession) -> TestClient:
+def client(session: Session) -> TestClient:
+    """Create a test client with database session override."""
+
+    def get_session_override():
+        return session
+
+    sync_app.dependency_overrides[get_session] = get_session_override
+
+    with TestClient(sync_app) as test_client:
+        yield test_client
+
+    sync_app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def async_client(async_session: AsyncSession) -> TestClient:
     """Create a test client with async database session override."""
 
-    async def get_async_session_override():
-        yield async_session
+    def get_async_session_override():
+        return async_session
 
-    app.dependency_overrides[get_async_session] = get_async_session_override
+    async_app.dependency_overrides[get_async_session] = (
+        get_async_session_override
+    )
 
-    yield TestClient(app)
+    with TestClient(async_app) as test_client:
+        yield test_client
 
-    app.dependency_overrides.clear()
+    async_app.dependency_overrides.clear()
 
 
 @contextmanager
@@ -165,6 +194,24 @@ async def user(async_session: AsyncSession) -> User:
 
 
 @pytest.fixture
-def token(user: User) -> str:
+def sync_user(session: Session) -> User:
+    """Create a test user with hashed password synchronously."""
+    hashed_password = get_password_hash('testpass123')
+    user = User(
+        username='testuser',
+        email='test@example.com',
+        password=hashed_password,
+        first_name='Test',
+        last_name='User',
+        bio='Test user bio',
+    )
+    session.add(user)
+    session.flush()  # Flush instead of commit to keep in transaction
+    session.refresh(user)
+    return user
+
+
+@pytest.fixture
+def token(sync_user: User) -> str:
     """Create a JWT token for the test user."""
-    return create_access_token(data={'sub': user.username})
+    return create_access_token(data={'sub': sync_user.email})

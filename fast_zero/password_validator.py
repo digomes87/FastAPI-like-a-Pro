@@ -84,11 +84,11 @@ class PasswordValidator:
 
         # Check for special characters
         if self.require_special and not re.search(
-            r'[!@#$%^&*(),.?":{}|<>]', password
+            r'[!@#$%^&*(),.?":{}|<>\-_]', password
         ):
             errors.append(
                 'Password must contain at least one special character '
-                '(!@#$%^&*(),.?":{}|<>)'
+                '(!@#$%^&*(),.?":{}|<>-_)'
             )
 
         # Check against common weak passwords

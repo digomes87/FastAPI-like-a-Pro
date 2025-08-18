@@ -133,11 +133,7 @@ DATABASE_USER=fast_zero_user
 DATABASE_PASSWORD=fast_zero_password
 ```
 
-#### **SQLite (Desenvolvimento)**
-```bash
-# Para desenvolvimento local simples
-DATABASE_URL=sqlite:///./database.db
-```
+
 
 ### **Executando Testes**
 

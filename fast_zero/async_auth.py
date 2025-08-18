@@ -100,30 +100,33 @@ def create_access_token(
 
 
 async def authenticate_user(
-    session: AsyncSession, username: str, password: str
+    session: AsyncSession, username_or_email: str, password: str
 ) -> User | bool:
     """Authenticate a user asynchronously with enhanced security.
 
     Args:
         session: Async database session
-        username: Username
+        username_or_email: Username or email
         password: Plain text password
 
     Returns:
         User instance if authentication successful, False otherwise
     """
-    # Check user security status first
-    security_service = UserSecurityService(session)
-
-    try:
-        await security_service.validate_user_for_login(username)
-    except HTTPException:
-        return False
-
     user_service = get_async_user_service(session)
-    user = await user_service.get_user_by_username(username)
+
+    # Try to find user by username or email
+    user = await user_service.get_user_by_username(username_or_email)
+    if not user:
+        user = await user_service.get_user_by_email(username_or_email)
 
     if not user:
+        return False
+
+    # Check user security status
+    security_service = UserSecurityService(session)
+    try:
+        await security_service.validate_user_for_login(user.username)
+    except HTTPException:
         return False
 
     # Verify password with timing attack protection

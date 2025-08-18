@@ -1,0 +1,77 @@
+<div class="login-container">
+  <!-- Left Illustration Section -->
+  <div class="illustration-section" [style.background-image]="'url(' + currentBackgroundImage + ')'">
+    <div class="illustration-overlay"></div>
+    <div class="illustration-content">
+      <div class="brand-logo">
+        <mat-icon class="logo-icon">explore</mat-icon>
+      </div>
+      <h1 class="illustration-title">Descubra novas possibilidades e alcance seus objetivos</h1>
+      <p class="illustration-subtitle">Uma jornada única a cada login</p>
+    </div>
+  </div>
+
+  <!-- Right Login Section -->
+  <div class="login-section">
+    <div class="login-wrapper">
+      <!-- Header -->
+      <div class="login-header">
+        <div class="auth-tabs">
+          <button class="tab-button active">Sign In</button>
+          <span class="tab-separator">or</span>
+          <button class="tab-button" (click)="goToRegister()">Sign Up</button>
+        </div>
+      </div>
+
+      <!-- Login Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        <!-- Form Fields -->
+        <div class="form-fields">
+          <div class="form-field">
+            <label class="field-label">EMAIL</label>
+            <input class="field-input" 
+                   formControlName="email" 
+                   placeholder="Enter your email" 
+                   autocomplete="email"
+                   type="email">
+            <div class="field-error" *ngIf="loginForm.get('email')?.hasError('required')">
+              Email é obrigatório
+            </div>
+            <div class="field-error" *ngIf="loginForm.get('email')?.hasError('email')">
+              Email deve ter um formato válido
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label class="field-label">PASSWORD</label>
+            <div class="password-field">
+              <input class="field-input" 
+                     [type]="hidePassword ? 'password' : 'text'" 
+                     formControlName="password" 
+                     placeholder="Enter your password"
+                     autocomplete="current-password">
+              <button type="button" 
+                      class="password-toggle"
+                      (click)="togglePasswordVisibility()">
+                <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
+            </div>
+            <div class="field-error" *ngIf="loginForm.get('password')?.hasError('required')">
+              Senha é obrigatória
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- Submit Button -->
+        <button type="submit" 
+                class="submit-button"
+                [disabled]="!loginForm.valid || isLoading">
+          <mat-spinner *ngIf="isLoading" diameter="16" class="button-spinner"></mat-spinner>
+          <span>{{isLoading ? 'Signing In...' : 'Sign In'}}</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
