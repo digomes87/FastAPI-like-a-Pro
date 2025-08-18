@@ -71,6 +71,12 @@
             <div class="field-error" *ngIf="registerForm.get('password')?.hasError('required')">
               Senha é obrigatória
             </div>
+            <div class="field-error" *ngIf="registerForm.get('password')?.hasError('minlength')">
+              Senha deve ter pelo menos 8 caracteres
+            </div>
+            <div class="field-error" *ngIf="registerForm.get('password')?.hasError('pattern')">
+              Senha deve conter pelo menos uma letra e um número
+            </div>
           </div>
 
           <div class="form-field">
