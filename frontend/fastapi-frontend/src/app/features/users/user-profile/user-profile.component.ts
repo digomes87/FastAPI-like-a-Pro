@@ -59,7 +59,6 @@ export class UserProfileComponent implements OnInit {
     private snackBar: MatSnackBar
   ) {
     this.profileForm = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       password: [''],
       confirmPassword: ['']
@@ -127,7 +126,6 @@ export class UserProfileComponent implements OnInit {
   private populateForm(): void {
     if (this.user) {
       this.profileForm.patchValue({
-        username: this.user.username,
         email: this.user.email,
         password: '',
         confirmPassword: ''
@@ -156,7 +154,6 @@ export class UserProfileComponent implements OnInit {
       this.isSaving = true;
       
       const updateData: any = {
-        username: formData.username,
         email: formData.email
       };
       

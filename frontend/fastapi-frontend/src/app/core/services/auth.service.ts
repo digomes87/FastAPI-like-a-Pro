@@ -43,7 +43,7 @@ export class AuthService {
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
     const formData = new FormData();
-    formData.append('username', credentials.username);
+    formData.append('username', credentials.email); // Backend still expects 'username' field
     formData.append('password', credentials.password);
 
     return this.http.post<LoginResponse>(`${this.API_URL}/auth/token`, formData)
